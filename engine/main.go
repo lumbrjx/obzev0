@@ -3,9 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"net"
-	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -22,7 +21,7 @@ func handleConnection(conn net.Conn, cnf Config) {
 	}
 
 	reader := bufio.NewReader(conn)
-	responseChan := make(chan ResponseT)
+	responseChan := make(chan string)
 
 	var wg sync.WaitGroup
 
@@ -47,12 +46,7 @@ func handleConnection(conn net.Conn, cnf Config) {
 
 		resp = <-responseChan
 		response := fmt.Sprintf(
-			"response: %s %s %d %s",
-			resp.method,
-			resp.url,
-			resp.statusCode,
-			resp.body,
-		)
+			"response: %s", resp)
 
 		fmt.Println(response)
 		_, err = conn.Write([]byte(response))
@@ -69,46 +63,59 @@ func handleConnection(conn net.Conn, cnf Config) {
 	}
 }
 
-type ResponseT struct {
-	method     string
-	url        string
-	statusCode int
-	body       string
-}
-
-func p1(method, url string, rChan chan ResponseT, wg *sync.WaitGroup, c int) {
+func p1(method, urL string, rChan chan string, wg *sync.WaitGroup, c int) {
 	defer wg.Done()
-	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest(method, url, nil)
+	parsedURL, err := url.Parse(urL)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	time.Sleep(time.Duration(c) * time.Second)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Failed to read response body:", err)
-		return
+		panic(err)
 	}
 
-	rs := ResponseT{
-		method:     method,
-		url:        url,
-		body:       string(body),
-		statusCode: resp.StatusCode,
+	host := parsedURL.Hostname()
+	port := parsedURL.Port()
+
+	if port == "" {
+		if parsedURL.Scheme == "http" {
+			port = "80"
+		} else if parsedURL.Scheme == "https" {
+			port = "443"
+		} else {
+			panic("Unsupported URL scheme")
+		}
 	}
+	address := net.JoinHostPort(host, port)
+
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	request := fmt.Sprintf(
+		"GET / HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",
+		host,
+	)
+
+	_, err = conn.Write([]byte(request))
+	if err != nil {
+		panic(err)
+	}
+
+	response := ""
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		response += scanner.Text() + "\n"
+	}
+
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+
+	// Print the response
+	rs := response
 	rChan <- rs
 }
 
-func p2(resp ResponseT, rChan chan ResponseT, wg *sync.WaitGroup, c int) {
+func p2(resp string, rChan chan string, wg *sync.WaitGroup, c int) {
 	defer wg.Done()
 
 	// Some processing on the response
