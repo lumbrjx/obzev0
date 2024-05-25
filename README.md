@@ -1,12 +1,13 @@
-# TON-618
+<h1 align="center">TON-618</h1>
 
 <p align="center">
  PoC of a chaos testing tool for tcp connections written in go
- 
 </p>
+
 <p align="center">
-  <img src="http://some_place.com/image.png" />
+  <img src="./assets/tn.jpg" />
 </p>
+
 ## How to configure this tool
 in the same dir of ton618 binary create a ``tonConf.yaml`` file with the following attr's:
 
