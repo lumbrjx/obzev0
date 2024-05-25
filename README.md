@@ -25,3 +25,11 @@ then you can start it via ``./ton618``
 start your http server then use curl or nc to send request via the proxy server 
 *you can use the http server examg go run httpServer.go*
 
+## Todo
+- [ ] packet loss
+- [ ] packet corruption
+- [ ] packet duplication
+- [ ] packet reordering
+- [ ] cpu throttling
+- [ ] ram limitaions
+- [ ] disk i/o throttling
