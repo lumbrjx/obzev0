@@ -12,7 +12,8 @@
 in the same dir of ton618 binary create a ``tonConf.yaml`` file with the following attr's:
 
 ```yaml
-qDelay: 0  // here you can set the delay for requests and responses
+Delay: 0  // here you can set the delay for requests and responses
+  reqDelay: 0
   resDelay: 0
 server:
   port: "7090" // tcp server port
