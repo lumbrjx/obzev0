@@ -9,7 +9,7 @@
 </p>
 
 ## How to configure this tool
-in the same dir of ton618 binary create a ``tonConf.yaml`` file with the following attr's:
+in the same dir of obzev0 binary create a ``ozConf.yaml`` file with the following attr's:
 
 ```yaml
 Delay: 0  // here you can set the delay for requests and responses
@@ -18,7 +18,7 @@ Delay: 0  // here you can set the delay for requests and responses
 server:
   port: "7090" // tcp server port
 ```
-then you can start it via ``./ton618``
+then you can start it via ``./obzev0``
 
 ## How to use it
 
