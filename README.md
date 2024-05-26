@@ -1,4 +1,4 @@
-<h1 align="center">TON-618</h1>
+<h1 align="center">obzev0</h1>
 
 <p align="center">
  PoC of a chaos testing tool for tcp connections written in go
