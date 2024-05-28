@@ -82,7 +82,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer listener.Close()
-	// client
 
 	fmt.Println("TCP server listening on port " + cnf.Server.Port)
 
@@ -97,6 +96,7 @@ func main() {
 			fmt.Println("Error accepting connection:", err)
 			continue
 		}
+		// client
 		clientConn, err := net.Dial("tcp", ":"+cnf.Client.Port)
 		if err != nil {
 			panic(err)
