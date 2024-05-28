@@ -1,137 +1,88 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io"
+	"log"
 	"net"
-	"net/url"
 	"os"
-	"sync"
 	"time"
 )
 
-func handleConnection(conn net.Conn, cnf Config) {
+func handleConnection(conn net.Conn, clientConn net.Conn, cnf Config) {
 	defer conn.Close()
-	fmt.Println("client connected:", conn.RemoteAddr().String())
-
 	_, err := conn.Write([]byte("TCP server response\n"))
 	if err != nil {
 		fmt.Println("error sending data:", err)
 		return
 	}
 
-	reader := bufio.NewReader(conn)
-	responseChan := make(chan string)
+	deadline := time.Now().Add(40 * time.Second)
+	conn.SetDeadline(deadline)
+	clientConn.SetDeadline(deadline)
 
-	var wg sync.WaitGroup
+	p1 := New(time.Duration(cnf.Delays.ReqDelay))
+	p2 := New(time.Duration(cnf.Delays.ResDelay))
 
-	for {
-		message, err := reader.ReadString('\n')
+	go Pipe(p1, conn, "tcp", "p1")
+	go Pipe(clientConn, p1, "p1", "http")
+	go Pipe(p2, clientConn, "http", "p2")
+	Pipe(conn, p2, "p2", "tcp")
 
-		if err != nil {
-			fmt.Println("disconnected:", conn.RemoteAddr().String())
-			return
-		}
+}
 
-		// here goes the reader routine
-		if method, url, ok := ExtractURL(message); ok {
-			wg.Add(1)
-			go p1(method, url, responseChan, &wg, cnf.Delays.ReqDelay)
-		}
+type inner_proxy struct {
+	data chan []byte
+	l    time.Duration
+}
 
-		resp := <-responseChan
-
-		wg.Add(1)
-		go p2(resp, responseChan, &wg, cnf.Delays.ResDelay)
-
-		resp = <-responseChan
-		response := fmt.Sprintf(
-			"response: %s", resp)
-
-		fmt.Println(response)
-		_, err = conn.Write([]byte(response))
-		if err != nil {
-			fmt.Println("error sending data:", err)
-			return
-		}
-		go func() {
-			wg.Wait()
-			close(responseChan)
-		}()
-
-		break
+func New(t time.Duration) *inner_proxy {
+	return &inner_proxy{
+		make(chan []byte),
+		t,
 	}
 }
 
-func p1(method, urL string, rChan chan string, wg *sync.WaitGroup, c int) {
-	defer wg.Done()
-	parsedURL, err := url.Parse(urL)
-	if err != nil {
-		panic(err)
+func (p *inner_proxy) Read(b []byte) (int, error) {
+	select {
+	case data := <-p.data:
+		time.Sleep(p.l)
+		return copy(b, data), nil
+	case <-time.After(4 * time.Second):
+		return 0, io.EOF
+
 	}
 
-	host := parsedURL.Hostname()
-	port := parsedURL.Port()
-
-	if port == "" {
-		if parsedURL.Scheme == "http" {
-			port = "80"
-		} else if parsedURL.Scheme == "https" {
-			port = "443"
-		} else {
-			panic("Unsupported URL scheme")
-		}
-	}
-	address := net.JoinHostPort(host, port)
-
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-
-	request := fmt.Sprintf(
-		"GET / HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",
-		host,
-	)
-
-	_, err = conn.Write([]byte(request))
-	if err != nil {
-		panic(err)
-	}
-
-	response := ""
-	scanner := bufio.NewScanner(conn)
-	for scanner.Scan() {
-		response += scanner.Text() + "\n"
-	}
-
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
-
-	// Print the response
-	rs := response
-	rChan <- rs
+}
+func (p *inner_proxy) Write(b []byte) (int, error) {
+	p.data <- b
+	return len(b), nil
 }
 
-func p2(resp string, rChan chan string, wg *sync.WaitGroup, c int) {
-	defer wg.Done()
+func Pipe(
+	dst io.Writer,
+	src io.Reader,
+	r, s string,
+) {
+	n, err := io.Copy(dst, src)
+	if err != nil {
+		log.Printf("we have an error: %s ", err)
+	}
+	log.Printf("copied %d bytes from %s to %s \n", n, r, s)
 
-	// Some processing on the response
-	time.Sleep(time.Duration(c) * time.Second)
-	rChan <- resp
 }
 
 func main() {
 
 	cnf, err := LoadConfig("tonConf.yaml")
+	// tcp
 	listener, err := net.Listen("tcp", ":"+cnf.Server.Port)
 	if err != nil {
 		fmt.Println("Error starting TCP server:", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
+	// client
 
 	fmt.Println("TCP server listening on port " + cnf.Server.Port)
 
@@ -146,7 +97,14 @@ func main() {
 			fmt.Println("Error accepting connection:", err)
 			continue
 		}
+		clientConn, err := net.Dial("tcp", ":"+cnf.Client.Port)
+		if err != nil {
+			panic(err)
+		}
+		defer clientConn.Close()
 
-		go handleConnection(conn, cnf)
+		fmt.Println("client connected:", conn.RemoteAddr().String())
+
+		go handleConnection(conn, clientConn, cnf)
 	}
 }

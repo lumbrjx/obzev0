@@ -1,4 +1,4 @@
-module ton618
+module obzev0 
 
 go 1.21.6
 

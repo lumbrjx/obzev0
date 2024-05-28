@@ -3,3 +3,5 @@ delays:
   resDelay: 0
 server:
   port: "7090"
+client:
+  port: "8080"
