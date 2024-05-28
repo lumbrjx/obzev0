@@ -1,35 +1,22 @@
 <h1 align="center">obzev0</h1>
 
 <p align="center">
- PoC of a chaos testing tool for tcp connections written in go
+ # obzev0: Chaos Engineering Platform
+obzev0 is a chaos engineering platform designed to help you test the resilience of your systems by simulating real-world failures. It allows you to define and execute chaos experiments to uncover weaknesses in your infrastructure and applications.
 </p>
 
 <p align="center">
   <img src="./assets/tn.jpg" />
 </p>
+## Tech Stack
 
-## How to configure this tool
-in the same dir of obzev0 binary create a ``ozConf.yaml`` file with the following attr's:
+- **Language:** Go (for the controller and gRPC server), C (for the eBPF program).
+- **Frameworks/Libraries:** Kubernetes client-go (for interacting with the Kubernetes API), gRPC (for communication between components), eBPF (for kernel space programming).
+- **Monitoring:** Prometheus and Grafana for monitoring and visualization.
+## Architecture
 
-```yaml
-Delay: 0  // here you can set the delay for requests and responses
-  reqDelay: 0
-  resDelay: 0
-server:
-  port: "7090" // tcp server port
-```
-then you can start it via ``./obzev0``
+Obzev0 is built using a microservices architecture, with the following components:
 
-## How to use it
-
-start your http server then use curl or nc to send request via the proxy server 
-*you can use the http server examg go run httpServer.go*
-
-## Todo
-- [ ] packet loss
-- [ ] packet corruption
-- [ ] packet duplication
-- [ ] packet reordering
-- [ ] cpu throttling
-- [ ] ram limitaions
-- [ ] disk i/o throttling
+- **Controller:** Responsible for watching Custom Resource Definitions (CRDs) representing chaos scenarios and dispatching work to the DaemonSet.
+- **DaemonSet:** Runs on every node in the Kubernetes cluster and acts as a gRPC server. It executes the chaos scenarios and communicates with the eBPF program in the kernel space.
+- **eBPF Program:** Written in C, it runs in the kernel space and is responsible for monitoring and manipulating network traffic for performance monitoring.
