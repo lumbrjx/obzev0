@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package tcpServ;
-option go_package = "/tcpService";
+package latencyServ;
+option go_package = "/latency";
 
-service TcpService {
+service LatencyService {
 
     rpc StartTcpServer(RequestForTcp) returns (ResponseFromTcp){};
 }
@@ -18,6 +18,6 @@ message RequestForTcp {
 }
 
 message ResponseFromTcp {
-    string metric = 1;
+    string message = 1;
 }
 

@@ -1,8 +1,10 @@
-package tcpService
+package latency
 
 import (
 	"log"
-	"obzev0/shared/structs"
+
+	"obzev0/common/definitions"
+	"obzev0/common/proto/latency"
 
 	"golang.org/x/net/context"
 
@@ -10,14 +12,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type Server struct {
-	UnimplementedTcpServiceServer
+type LatencyService struct {
+	latency.UnimplementedLatencyServiceServer
+	metrics     MetricsData
+	metricsChan chan MetricsData
 }
 
-func (s *Server) StartTcpServer(
+func (s *LatencyService) StartTcpServer(
 	ctx context.Context,
-	requestForTcp *RequestForTcp,
-) (*ResponseFromTcp, error) {
+	requestForTcp *latency.RequestForTcp,
+) (*latency.ResponseFromTcp, error) {
 	if requestForTcp == nil || requestForTcp.Config == nil {
 		return nil, status.Errorf(
 			codes.InvalidArgument,
@@ -35,20 +39,20 @@ func (s *Server) StartTcpServer(
 	}
 	log.Printf("recived %s", requestForTcp.Config.Client)
 
-	cnf := structs.Config{
-		Delays: structs.DelaysConfig{
+	conf := definitions.Config{
+		Delays: definitions.DelaysConfig{
 			ReqDelay: config.ReqDelay,
 			ResDelay: config.ResDelay,
 		},
-		Server: structs.ServerConfig{
+		Server: definitions.ServerConfig{
 			Port: config.Server,
 		},
-		Client: structs.ClientConfig{
+		Client: definitions.ClientConfig{
 			Port: config.Client,
 		},
 	}
-	go LaunchTcp(cnf)
-	return &ResponseFromTcp{
-		Metric: "Tcp server started",
+	go LaunchTcp(conf)
+	return &latency.ResponseFromTcp{
+		Message: "Tcp server started",
 	}, nil
 }

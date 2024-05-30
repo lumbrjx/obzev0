@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"obzev0/shared/services/tcpService"
+	ltc "obzev0/common/proto/latency"
+	"obzev0/daemon/api/grpc/latency"
 	"os"
 	"time"
 
@@ -13,9 +14,11 @@ import (
 
 func waitForMetrics() error {
 
-	data := <-tcpService.Mtrx
+	data := <-latency.Mtrx
 	file, err := os.Create(
-		"../tcpMetrics-" + time.Now().UTC().Format("01-06-02-15:04:05"),
+		"../../../latencyMetrics-" + time.Now().
+			UTC().
+			Format("01-06-02-15:04:05"),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create or open file: %w", err)
@@ -43,15 +46,15 @@ func waitForMetrics() error {
 }
 func main() {
 
+	println("hello")
 	l, err := net.Listen("tcp", ":9000")
 	if err != nil {
 		log.Fatal("Failed to start on port 9000: ", err)
 	}
 
-	s := &tcpService.Server{}
+	s := latency.LatencyService{}
 	grpcServer := grpc.NewServer()
-
-	tcpService.RegisterTcpServiceServer(grpcServer, s)
+	ltc.RegisterLatencyServiceServer(grpcServer, &s)
 	go waitForMetrics()
 	log.Printf("server listening at %v", l.Addr())
 	if err := grpcServer.Serve(l); err != nil {

@@ -1,4 +1,4 @@
-package structs
+package definitions
 
 type Config struct {
 	Delays DelaysConfig `yaml:"delays"`

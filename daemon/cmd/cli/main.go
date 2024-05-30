@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"obzev0/shared/services/tcpService"
-	"obzev0/shared/structs"
+	"obzev0/common/definitions"
+	"obzev0/common/proto/latency"
 	"os"
 	"time"
 
@@ -14,8 +14,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func LoadConfig(filename string) (structs.Config, error) {
-	var config structs.Config
+func LoadConfig(filename string) (definitions.Config, error) {
+	var config definitions.Config
 
 	yamlFile, err := os.ReadFile(filename)
 	if err != nil {
@@ -38,10 +38,10 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := tcpService.NewTcpServiceClient(conn)
+	c := latency.NewLatencyServiceClient(conn)
 
 	cnf, err := LoadConfig("obzevConf.yaml")
-	config := &tcpService.TcpConfig{
+	config := &latency.TcpConfig{
 		ReqDelay: cnf.Delays.ReqDelay,
 		ResDelay: cnf.Delays.ResDelay,
 		Server:   cnf.Server.Port,
@@ -54,7 +54,7 @@ func main() {
 		config.ReqDelay = 1
 	}
 
-	req := &tcpService.RequestForTcp{Config: config}
+	req := &latency.RequestForTcp{Config: config}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -62,6 +62,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("Response: %s", res.GetMetric())
+	log.Printf("Response: %s", res.GetMessage())
 
 }

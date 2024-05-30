@@ -1,4 +1,4 @@
-package tcpService
+package latency
 
 import (
 	"context"
@@ -6,7 +6,8 @@ import (
 	"io"
 	"log"
 	"net"
-	s "obzev0/shared/structs"
+
+	"obzev0/common/definitions"
 	"os"
 	"sync"
 	"time"
@@ -25,7 +26,7 @@ var (
 func handleConnection(
 	conn net.Conn,
 	clientConn net.Conn,
-	cnf s.Config,
+	cnf definitions.Config,
 	wg *sync.WaitGroup,
 ) {
 	defer conn.Close()
@@ -110,16 +111,15 @@ func Pipe(dst io.Writer, src io.Reader, r, s string, mtr *MetricsData) {
 	mtr.BytesNumber = append(mtr.BytesNumber, n)
 }
 
-func LaunchTcp(cnf s.Config) {
-	fmt.Println(cnf)
-	listener, err := net.Listen("tcp", ":"+cnf.Server.Port)
+func LaunchTcp(conf definitions.Config) {
+	listener, err := net.Listen("tcp", ":"+conf.Server.Port)
 	if err != nil {
 		fmt.Println("Error starting TCP server:", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
 
-	fmt.Println("TCP server listening on port " + cnf.Server.Port)
+	fmt.Println("TCP server listening on port " + conf.Server.Port)
 
 	var wg sync.WaitGroup
 
@@ -139,7 +139,7 @@ func LaunchTcp(cnf s.Config) {
 				}
 			}
 
-			clientConn, err := net.Dial("tcp", ":"+cnf.Client.Port)
+			clientConn, err := net.Dial("tcp", ":"+conf.Client.Port)
 			if err != nil {
 				log.Fatalf("Error connecting to client: %v", err)
 			}
@@ -147,7 +147,7 @@ func LaunchTcp(cnf s.Config) {
 			fmt.Println("client connected:", conn.RemoteAddr().String())
 
 			wg.Add(1)
-			go handleConnection(conn, clientConn, cnf, &wg)
+			go handleConnection(conn, clientConn, conf, &wg)
 		}
 	}()
 
