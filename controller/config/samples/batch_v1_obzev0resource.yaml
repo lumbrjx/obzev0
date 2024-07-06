@@ -1,0 +1,9 @@
+apiVersion: batch.github.com/v1
+kind: Obzev0Resource
+metadata:
+  labels:
+    app.kubernetes.io/name: controller
+    app.kubernetes.io/managed-by: kustomize
+  name: obzev0resource-sample
+spec:
+  # TODO(user): Add fields here
