@@ -2,17 +2,24 @@ package controller
 
 import (
 	"context"
-	"os"
-
 	v1 "github.com/lumbrjx/obzev0/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
+	"log"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var setupLog = ctrl.Log.WithName("setup")
 
 func SetupInformers(mgr ctrl.Manager) {
+	clientset, err := kubernetes.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		log.Fatal(err, "unable to create clientset")
+		os.Exit(1)
+	}
 	setupLog.Info("Setting up informers")
 	ctx := context.Background()
 	crInformer, err := mgr.GetCache().GetInformer(ctx, &v1.Obzev0Resource{})
@@ -34,8 +41,7 @@ func SetupInformers(mgr ctrl.Manager) {
 		},
 	})
 	setupLog.Info("Event handlers added to CR informer")
-
-	// Start the informer
+	listNodes(clientset) // Start the informer
 	// go func() {
 	// 	setupLog.Info("Starting informer")
 	// 	if err := mgr.GetCache().Start(ctx); err != nil {
@@ -70,4 +76,15 @@ func handleDelete(obj interface{}) {
 		return
 	}
 	klog.Infof("Custom Resource deleted: %s", key)
+}
+func listNodes(clientset *kubernetes.Clientset) {
+	nodes, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		klog.Fatalf("Error listing nodes: %v", err)
+	}
+
+	klog.Info("Listing all nodes in the cluster:")
+	for _, node := range nodes.Items {
+		klog.Infof("Node Name: %s", node.Name)
+	}
 }
