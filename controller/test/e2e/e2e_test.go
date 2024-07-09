@@ -24,7 +24,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/lumbrjx/obzev0/test/utils"
+	"obzev0/controller/test/utils"
 )
 
 const namespace = "controller-system"
@@ -63,7 +63,11 @@ var _ = Describe("controller", Ordered, func() {
 			var projectimage = "example.com/controller:v0.0.1"
 
 			By("building the manager(Operator) image")
-			cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectimage))
+			cmd := exec.Command(
+				"make",
+				"docker-build",
+				fmt.Sprintf("IMG=%s", projectimage),
+			)
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
@@ -77,11 +81,17 @@ var _ = Describe("controller", Ordered, func() {
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("deploying the controller-manager")
-			cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectimage))
+			cmd = exec.Command(
+				"make",
+				"deploy",
+				fmt.Sprintf("IMG=%s", projectimage),
+			)
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-			By("validating that the controller-manager pod is running as expected")
+			By(
+				"validating that the controller-manager pod is running as expected",
+			)
 			verifyControllerUp := func() error {
 				// Get pod name
 
@@ -98,10 +108,16 @@ var _ = Describe("controller", Ordered, func() {
 				ExpectWithOffset(2, err).NotTo(HaveOccurred())
 				podNames := utils.GetNonEmptyLines(string(podOutput))
 				if len(podNames) != 1 {
-					return fmt.Errorf("expect 1 controller pods running, but got %d", len(podNames))
+					return fmt.Errorf(
+						"expect 1 controller pods running, but got %d",
+						len(podNames),
+					)
 				}
 				controllerPodName = podNames[0]
-				ExpectWithOffset(2, controllerPodName).Should(ContainSubstring("controller-manager"))
+				ExpectWithOffset(
+					2,
+					controllerPodName,
+				).Should(ContainSubstring("controller-manager"))
 
 				// Validate pod status
 				cmd = exec.Command("kubectl", "get",
@@ -115,7 +131,12 @@ var _ = Describe("controller", Ordered, func() {
 				}
 				return nil
 			}
-			EventuallyWithOffset(1, verifyControllerUp, time.Minute, time.Second).Should(Succeed())
+			EventuallyWithOffset(
+				1,
+				verifyControllerUp,
+				time.Minute,
+				time.Second,
+			).Should(Succeed())
 
 		})
 	})

@@ -46,8 +46,7 @@ func waitForMetrics() error {
 }
 func main() {
 
-	println("hello")
-	l, err := net.Listen("tcp", ":9000")
+	l, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal("Failed to start on port 9000: ", err)
 	}

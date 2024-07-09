@@ -26,7 +26,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	batchv1 "github.com/lumbrjx/obzev0/api/v1"
+	batchv1 "obzev0/controller/api/v1"
 )
 
 var _ = Describe("Obzev0Resource Controller", func() {
