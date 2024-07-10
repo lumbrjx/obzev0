@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func waitForMetrics() error {
-
 	data := <-latency.Mtrx
 	file, err := os.Create(
 		"../../../latencyMetrics-" + time.Now().
@@ -42,21 +43,36 @@ func waitForMetrics() error {
 	}
 
 	return nil
-
 }
-func main() {
 
+func main() {
 	l, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatal("Failed to start on port 9000: ", err)
+		log.Fatal("Failed to start on port 50051: ", err)
 	}
 
 	s := latency.LatencyService{}
 	grpcServer := grpc.NewServer()
 	ltc.RegisterLatencyServiceServer(grpcServer, &s)
+
+	// Register the health check service
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
+
+	// Set the health status to SERVING
+	healthSrv.SetServingStatus(
+		"grpc.health.v1.Health",
+		grpc_health_v1.HealthCheckResponse_SERVING,
+	)
+	healthSrv.SetServingStatus(
+		"obzev0.common.proto.latency.LatencyService",
+		grpc_health_v1.HealthCheckResponse_SERVING,
+	)
+
 	go waitForMetrics()
+
 	log.Printf("server listening at %v", l.Addr())
 	if err := grpcServer.Serve(l); err != nil {
-		log.Fatal("Failed to serve grpc over 9000 ", err)
+		log.Fatal("Failed to serve grpc over 50051 ", err)
 	}
 }

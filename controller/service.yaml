@@ -11,5 +11,5 @@ spec:
     protocol: TCP
   selector:
     app: grpc-server
-  type: NodePort 
+  type: ClusterIP
 

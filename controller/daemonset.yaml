@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: grpc-server-daemonset
-  labels:
-    app: grpc-server
 spec:
   selector:
     matchLabels:
@@ -15,32 +13,51 @@ spec:
     spec:
       containers:
       - name: grpc-server
-        image: lumbrjx/obzev0-grpc-daemon:1.0.1  
+        image: lumbrjx/obzev0-grpc-daemon:1.0.3 
         ports:
-        - containerPort: 50051  
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
+        - containerPort: 50051
         livenessProbe:
-          httpGet:
-            path: /health
-            port: 50051
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051"]
           initialDelaySeconds: 30
           periodSeconds: 30
         readinessProbe:
-          httpGet:
-            path: /health
-            port: 50051
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051"]
           initialDelaySeconds: 30
           periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 250m
+            memory: 64Mi
       nodeSelector:
-        node-role.kubernetes.io/worker: ""  
+        node-role.kubernetes.io/worker: ""
       tolerations:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
         effect: "NoSchedule"
-
+      - key: "node.kubernetes.io/disk-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node.kubernetes.io/memory-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+      - key: "node.kubernetes.io/pid-pressure"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+      - key: "node.kubernetes.io/unschedulable"
+        operator: "Exists"
+        effect: "NoSchedule"
+# kubectl label node kind-worker node-role.kubernetes.io/worker=
+# kubectl label node kind-worker2 node-role.kubernetes.io/worker=
+# kubectl label node kind-worker3 node-role.kubernetes.io/worker=
+#
