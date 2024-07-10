@@ -5,7 +5,7 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-IMAGE_TAG="$1"
+IMAGE_TAG=$1
 
 echo "Installing CRDs into the cluster..."
 if ! make install; then

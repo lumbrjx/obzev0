@@ -39,13 +39,34 @@ spec:
           spec:
             description: Obzev0ResourceSpec defines the desired state of Obzev0Resource
             properties:
-              foo:
+              config:
                 description: Foo is an example field of Obzev0Resource. Edit obzev0resource_types.go
                   to remove/update
-                type: string
+                properties:
+                  client:
+                    description: TCP client address
+                    type: string
+                  reqDelay:
+                    description: Delay in request handling
+                    format: int32
+                    type: integer
+                  resDelay:
+                    description: Delay in response handling
+                    format: int32
+                    type: integer
+                  server:
+                    description: TCP server address
+                    type: string
+                type: object
             type: object
           status:
             description: Obzev0ResourceStatus defines the observed state of Obzev0Resource
+            properties:
+              message:
+                description: |-
+                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+                  Important: Run "make" to regenerate code after modifying this file
+                type: string
             type: object
         type: object
     served: true
