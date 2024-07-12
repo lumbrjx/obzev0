@@ -1,6 +1,6 @@
 delays:
-  reqDelay: 0
-  resDelay: 0
+  reqDelay: 10
+  resDelay: 10
 server:
   port: "7090"
 client:

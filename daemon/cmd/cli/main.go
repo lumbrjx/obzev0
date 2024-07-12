@@ -31,7 +31,7 @@ func LoadConfig(filename string) (definitions.Config, error) {
 
 func main() {
 	conn, err := grpc.NewClient(
-		"localhost:9000",
+		"localhost:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

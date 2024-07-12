@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'grpc_server'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['127.0.0.1:2112']
+

@@ -1,48 +1,64 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
+	"net/http"
 	ltc "obzev0/common/proto/latency"
 	"obzev0/daemon/api/grpc/latency"
-	"os"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-func waitForMetrics() error {
-	data := <-latency.Mtrx
-	file, err := os.Create(
-		"../../../latencyMetrics-" + time.Now().
-			UTC().
-			Format("01-06-02-15:04:05"),
+var (
+	bytesHistogram = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "grpc_server_bytes",
+			Help:    "Bytes processed by the gRPC server",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method"},
 	)
-	if err != nil {
-		return fmt.Errorf("failed to create or open file: %w", err)
-	}
-	defer file.Close()
-
-	bytesString := "Bytes number: "
-	for _, num := range data.BytesNumber {
-		bytesString += fmt.Sprintf("%d ", num)
-	}
-	responseTimeString := fmt.Sprintf(
-		"Response time: %d ms\n",
-		data.ResponseTime,
+	responseTimeHistogram = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "grpc_server_response_time_seconds",
+			Help:    "Response time of gRPC server methods",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method"},
 	)
+)
 
-	dataString := fmt.Sprintf("%s\n%s", bytesString, responseTimeString)
+func recordMetrics(method string, bytes int64, responseTime time.Duration) {
+	log.Printf(
+		"Recording metrics: method=%s, bytes=%d, responseTime=%s",
+		method,
+		bytes,
+		responseTime,
+	)
+	bytesHistogram.WithLabelValues(method).Observe(float64(bytes))
+	responseTimeHistogram.WithLabelValues(method).Observe(responseTime.Seconds())
+}
 
-	_, err = file.WriteString(dataString)
-	if err != nil {
-		return fmt.Errorf("failed to write to file: %w", err)
+func waitForMetrics() {
+	for {
+		data := <-latency.Mtrx
+		log.Printf("Received data: %+v", data)
+
+		for _, bytes := range data.BytesNumber {
+			recordMetrics(
+				"LatencyService",
+				bytes,
+				time.Duration(data.ResponseTime),
+			)
+		}
 	}
-
-	return nil
 }
 
 func main() {
@@ -55,11 +71,9 @@ func main() {
 	grpcServer := grpc.NewServer()
 	ltc.RegisterLatencyServiceServer(grpcServer, &s)
 
-	// Register the health check service
 	healthSrv := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
 
-	// Set the health status to SERVING
 	healthSrv.SetServingStatus(
 		"grpc.health.v1.Health",
 		grpc_health_v1.HealthCheckResponse_SERVING,
@@ -71,8 +85,15 @@ func main() {
 
 	go waitForMetrics()
 
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(":2112", nil); err != nil {
+			log.Fatal("Failed to serve metrics endpoint: ", err)
+		}
+	}()
+
 	log.Printf("server listening at %v", l.Addr())
 	if err := grpcServer.Serve(l); err != nil {
-		log.Fatal("Failed to serve grpc over 50051 ", err)
+		log.Fatal("Failed to serve gRPC over 50051: ", err)
 	}
 }

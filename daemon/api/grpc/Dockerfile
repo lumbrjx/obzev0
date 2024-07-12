@@ -23,6 +23,7 @@ COPY --from=builder /app/common ./common
 COPY --from=grpc_health_probe_downloader /bin/grpc_health_probe /bin/grpc_health_probe
 
 EXPOSE 50051
+EXPOSE 2112
 
 CMD ["./grpc-server"]
 
