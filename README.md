@@ -5,11 +5,13 @@
 obzev0 is a chaos engineering platform designed to help you test the resilience of your systems by simulating real-world failures. It allows you to define and execute chaos experiments to uncover weaknesses in your infrastructure and applications.
 </p>
 
-### THIS PROJECT IS STILL UNDER DEVELOPMENT!
+
 
 <p align="center">
   <img src="./assets/tn.jpg" />
 </p>
+
+**THIS PROJECT IS STILL UNDER DEVELOPMENT!**
 
 ## Tech Stack
 
