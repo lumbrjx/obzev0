@@ -28,7 +28,6 @@ func (s *LatencyService) StartTcpServer(
 			"RequestForTcp or TcpConfig cannot be nil",
 		)
 	}
-
 	config := requestForTcp.GetConfig()
 	if config.ReqDelay == 0 || config.ResDelay == 0 || config.Server == "" ||
 		config.Client == "" {

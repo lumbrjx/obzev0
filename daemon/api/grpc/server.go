@@ -5,12 +5,16 @@ import (
 	"net"
 	"net/http"
 	ltc "obzev0/common/proto/latency"
+	"obzev0/daemon/api/grpc/interceptors"
 	"obzev0/daemon/api/grpc/latency"
+	"os"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -61,14 +65,35 @@ func waitForMetrics() {
 	}
 }
 
+var (
+	rpcLogger *logrus.Entry
+)
+
 func main() {
 	l, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatal("Failed to start on port 50051: ", err)
 	}
 
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true,
+	})
+	logger.SetOutput(os.Stdout)
+
+	rpcLogger = logger.WithFields(logrus.Fields{
+		"service": "gRPC/server",
+	})
 	s := latency.LatencyService{}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			recovery.UnaryServerInterceptor(
+				recovery.WithRecoveryHandler(
+					interceptors.RecoveryHandler(rpcLogger),
+				),
+			),
+		),
+	)
 	ltc.RegisterLatencyServiceServer(grpcServer, &s)
 
 	healthSrv := health.NewServer()
