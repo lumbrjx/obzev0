@@ -1,0 +1,27 @@
+# permissions for end users to edit obzev0resources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: controller
+    app.kubernetes.io/managed-by: kustomize
+  name: obzev0resource-editor-role
+rules:
+- apiGroups:
+  - batch.github.com
+  resources:
+  - obzev0resources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch.github.com
+  resources:
+  - obzev0resources/status
+  verbs:
+  - get

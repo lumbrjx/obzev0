@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # grpc-server:
+  #   image: lumbrjx/obzev0-grpc-daemon:1.0.3  
+  #   ports:
+  #     - "50051:50051"
+  #     - "2112:2112"
+  #   networks:
+  #     - grpc-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    network_mode: host
+

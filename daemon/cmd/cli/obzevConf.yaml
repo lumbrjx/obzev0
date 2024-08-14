@@ -1,0 +1,7 @@
+delays:
+  reqDelay: 10
+  resDelay: 10
+server:
+  port: "7090"
+client:
+  port: "8080"

@@ -1,0 +1,17 @@
+# kind-config.yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.30.0
+    extraPortMappings:
+      - containerPort: 50051
+        hostPort: 31397
+        protocol: TCP
+  - role: worker
+    image: kindest/node:v1.30.0
+  - role: worker
+    image: kindest/node:v1.30.0
+  - role: worker
+    image: kindest/node:v1.30.0
+

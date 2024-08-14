@@ -1,0 +1,16 @@
+apiVersion: batch.github.com/v1
+kind: Obzev0Resource
+metadata:
+  labels:
+    app.kubernetes.io/name: controller
+    app.kubernetes.io/managed-by: kustomize
+  name: obzev0resource-sample
+spec:
+  config:
+    reqDelay: 10   
+    resDelay: 20  
+    server: "7090"  
+    client: "8080"  
+status:
+  message: "Server started successfully"  
+

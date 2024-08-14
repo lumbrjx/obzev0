@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package latencyServ;
+option go_package = "/latency";
+
+service LatencyService {
+
+    rpc StartTcpServer(RequestForTcp) returns (ResponseFromTcp){};
+}
+message TcpConfig {
+    int32 reqDelay = 1;
+	int32 resDelay= 2;
+	string	server = 3;
+	string	client = 4;
+}
+message RequestForTcp {
+    TcpConfig config = 1;
+}
+
+message ResponseFromTcp {
+    string message = 1;
+}
+
