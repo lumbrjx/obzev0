@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package tcAnalyserServ;
+option go_package = "/tcAnalyser";
+
+service TcAnalyserService {
+
+    rpc StartUserSpace(RequestUserSpace) returns (ResponseUserSpace){};
+}
+message TcConfig{
+	string	interface= 1;
+}
+message RequestUserSpace{
+    TcConfig config = 1;
+}
+
+message ResponseUserSpace{
+    string message = 1;
+}
+

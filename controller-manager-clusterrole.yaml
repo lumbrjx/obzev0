@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: controller-manager-role
+  namespace: controller-system
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources:  ["statefulsets", "replicasets", "daemonsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["get", "list", "watch"]
+
