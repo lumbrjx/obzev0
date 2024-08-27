@@ -84,7 +84,6 @@ func main() {
 	rpcLogger = logger.WithFields(logrus.Fields{
 		"service": "gRPC/server",
 	})
-	s := latency.LatencyService{}
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(
 			recovery.UnaryServerInterceptor(
@@ -94,6 +93,7 @@ func main() {
 			),
 		),
 	)
+	s := latency.LatencyService{}
 	ltc.RegisterLatencyServiceServer(grpcServer, &s)
 
 	healthSrv := health.NewServer()
