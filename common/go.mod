@@ -3,6 +3,7 @@ module obzev0/common
 go 1.22.5
 
 require (
+	github.com/envoyproxy/protoc-gen-validate v1.0.4
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 )

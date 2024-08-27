@@ -2,19 +2,16 @@ syntax = "proto3";
 
 package tcAnalyserServ;
 option go_package = "/tcAnalyser";
+import "validate/validate.proto";
 
 service TcAnalyserService {
-
-    rpc StartUserSpace(RequestUserSpace) returns (ResponseUserSpace){};
-}
-message TcConfig{
-	string	interface= 1;
-}
-message RequestUserSpace{
-    TcConfig config = 1;
+  rpc StartUserSpace(RequestForUserSpace) returns (ResponseFromUserSpace) {};
 }
 
-message ResponseUserSpace{
-    string message = 1;
+message TcConfig {
+  string interface = 1 [ (validate.rules).string = {min_len : 1} ];
 }
 
+message RequestForUserSpace { TcConfig config = 1; }
+
+message ResponseFromUserSpace { string message = 1; }

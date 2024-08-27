@@ -1,13 +1,21 @@
+VALIDATE_PATH = $(GOPATH)/pkg/mod/github.com/envoyproxy/protoc-gen-validate@v1.1.0
+SOURCE_DIR=common/proto/$$PROTO_PATH/$$PROTO_PATH
+TARGET_DIR=common/proto/$$PROTO_PATH
+
 .PHONY: all generate-proto
 
 all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus
 
 generate-proto:
 	@if [ -z "$$PROTO_PATH" ]; then \
-		echo "Usage: make generate-proto PROTO_PATH=<protoDir/file.proto>"; \
+		echo "Usage: make generate-proto PROTO_PATH=<protoDir>"; \
 		exit 1; \
 	fi
-	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative common/proto/$$PROTO_PATH
+	protoc --proto_path=. --proto_path=$(VALIDATE_PATH) \
+	       --go_out=. --go-grpc_out=. \
+	       --validate_out="lang=go:common/proto/$$PROTO_PATH" \
+	       --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative \
+	       common/proto/$$PROTO_PATH/$$PROTO_PATH.proto && mv ${SOURCE_DIR}/* ${TARGET_DIR}/ && rmdir ${SOURCE_DIR}	
 	@echo "Code generated successfully."
 
 	 
