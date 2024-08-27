@@ -1,7 +1,16 @@
-.PHONY: all
+.PHONY: all generate-proto
 
 all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus
 
+generate-proto:
+	@if [ -z "$$PROTO_PATH" ]; then \
+		echo "Usage: make generate-proto PROTO_PATH=<protoDir/file.proto>"; \
+		exit 1; \
+	fi
+	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative common/proto/$$PROTO_PATH
+	@echo "Code generated successfully."
+
+	 
 deploy-controller:
 	@if [ -z "$$IMAGE_TAG" ]; then \
 		echo "Usage: make deploy-controller IMAGE_TAG=<controller-image-tag>"; \
