@@ -2,19 +2,21 @@ syntax = "proto3";
 
 package latencyServ;
 option go_package = "/latency";
+import "validate/validate.proto";
 
 service LatencyService {
+    rpc StartTcpServer(RequestForTcp) returns (ResponseFromTcp) {};
+}
 
-    rpc StartTcpServer(RequestForTcp) returns (ResponseFromTcp){};
-}
 message TcpConfig {
-    int32 reqDelay = 1;
-	int32 resDelay= 2;
-	string	server = 3;
-	string	client = 4;
+    int32 reqDelay = 1 [(validate.rules).int32.gte = 0];  
+    int32 resDelay = 2 [(validate.rules).int32.gte = 0];  
+    string server = 3 [(validate.rules).string.min_len = 1]; 
+    string client = 4 [(validate.rules).string.min_len = 1];
 }
+
 message RequestForTcp {
-    TcpConfig config = 1;
+    TcpConfig config = 1 [(validate.rules).message.required = true];  
 }
 
 message ResponseFromTcp {

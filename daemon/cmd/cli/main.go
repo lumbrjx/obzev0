@@ -47,12 +47,12 @@ func main() {
 		Server:   cnf.Server.Port,
 		Client:   cnf.Client.Port,
 	}
-	if config.ResDelay == 0 {
-		config.ResDelay = 1
-	}
-	if config.ReqDelay == 0 {
-		config.ReqDelay = 1
-	}
+	println(
+		config.Client,
+		config.Server,
+		config.ResDelay,
+		config.ReqDelay,
+	)
 
 	req := &latency.RequestForTcp{Config: config}
 

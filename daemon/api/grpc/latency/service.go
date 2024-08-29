@@ -22,21 +22,16 @@ func (s *LatencyService) StartTcpServer(
 	ctx context.Context,
 	requestForTcp *latency.RequestForTcp,
 ) (*latency.ResponseFromTcp, error) {
-	if requestForTcp == nil || requestForTcp.Config == nil {
+	if err := requestForTcp.Config.Validate(); err != nil {
 		return nil, status.Errorf(
 			codes.InvalidArgument,
-			"RequestForTcp or TcpConfig cannot be nil",
+			"Invalid request: %v",
+			err,
 		)
 	}
+
 	config := requestForTcp.GetConfig()
-	if config.ReqDelay == 0 || config.ResDelay == 0 || config.Server == "" ||
-		config.Client == "" {
-		return nil, status.Errorf(
-			codes.InvalidArgument,
-			"All fields in TcpConfig must be provided",
-		)
-	}
-	log.Printf("recived %s", requestForTcp.Config.Client)
+	log.Printf("recived %s", config.Client)
 
 	conf := definitions.Config{
 		Delays: definitions.DelaysConfig{
