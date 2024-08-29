@@ -2,9 +2,24 @@ VALIDATE_PATH = $(GOPATH)/pkg/mod/github.com/envoyproxy/protoc-gen-validate@v1.1
 SOURCE_DIR=common/proto/$$PROTO_PATH/$$PROTO_PATH
 TARGET_DIR=common/proto/$$PROTO_PATH
 
-.PHONY: all generate-proto
+.PHONY: all generate-proto build-daemon
 
-all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus
+all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus 
+
+build-daemon:
+	@if [ -z "$$TAG" ]; then \
+		echo "Usage: make build-daemon TAG=<tag>"; \
+		exit 1; \
+	fi
+	docker build -f daemon/api/grpc/Dockerfile -t lumbrjx/obzev0-grpc-daemon:$$TAG .
+
+push-daemon:
+	@if [ -z "$$TAG" ]; then \
+		echo "Usage: make push-daemon TAG=<tag>"; \
+		exit 1; \
+	fi
+	docker push lumbrjx/obzev0-grpc-daemon:$$TAG 
+
 
 generate-proto:
 	@if [ -z "$$PROTO_PATH" ]; then \
