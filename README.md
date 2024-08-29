@@ -1,8 +1,8 @@
-<h1 align="center">obzev0 : Chaos Engineering Platform </h1>
+<h1 align="center">obzev0 : Chaos Engineering Tool</h1>
 
 <p align="center">
 
-obzev0 is a chaos engineering platform designed to help you test the resilience of your systems by simulating real-world failures. It allows you to define and execute chaos experiments to uncover weaknesses in your infrastructure and applications.
+obzev0 is a chaos engineering tool designed to help you test the resilience of your systems by simulating real-world failures. It allows you to define and execute chaos experiments to uncover weaknesses in your infrastructure and applications.
 </p>
 
 <p align="center">
