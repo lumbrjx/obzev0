@@ -49,9 +49,12 @@ jobs:
           docker push ${{ env.DAEMON_IMAGE_NAME }}:staging
 
   create-release:
-    needs: build-and-push-staging
     if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     steps:
       - uses: actions/checkout@v3
 
