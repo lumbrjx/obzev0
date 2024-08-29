@@ -1,10 +1,36 @@
 VALIDATE_PATH = $(GOPATH)/pkg/mod/github.com/envoyproxy/protoc-gen-validate@v1.1.0
 SOURCE_DIR=common/proto/$$PROTO_PATH/$$PROTO_PATH
 TARGET_DIR=common/proto/$$PROTO_PATH
+DEV_BRANCH = dev
+STAGING_BRANCH = staging
+RELEASE_BRANCH = release
+MAIN_BRANCH = main
 
 .PHONY: all generate-proto build-daemon
 
 all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus 
+
+dev-to-staging:
+	@git checkout $(STAGING_BRANCH)
+	@git merge $(DEV_BRANCH)
+	@git push origin $(STAGING_BRANCH)
+	@echo "Merged $(DEV_BRANCH) to $(STAGING_BRANCH) and pushed to origin."
+
+staging-to-release: dev-to-staging release
+	@git checkout $(RELEASE_BRANCH)
+	@git merge $(STAGING_BRANCH)
+	@git push origin $(RELEASE_BRANCH)
+	@echo "Merged $(STAGING_BRANCH) to $(RELEASE_BRANCH) and pushed to origin."
+
+release-to-main: staging-to-release
+	@git checkout $(MAIN_BRANCH)
+	@git merge $(RELEASE_BRANCH)
+	@git push origin $(MAIN_BRANCH)
+	@echo "Merged $(RELEASE_BRANCH) to $(MAIN_BRANCH) and pushed to origin."
+
+# Full pipeline (runs all steps)
+pipeline: release-to-main
+	@echo "Pipeline completed successfully."
 
 build-daemon:
 	@if [ -z "$$TAG" ]; then \
