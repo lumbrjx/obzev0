@@ -43,10 +43,6 @@ jobs:
 
       - name: Build and push Daemon, Controller Docker images
         run: |
-          make build-daemon TAG=${{ github.sha }}
-          make push-daemon TAG=${{ github.sha }}
-          docker tag ${{ env.DAEMON_IMAGE_NAME }}:${{ github.sha }} ${{ env.DAEMON_IMAGE_NAME }}:staging
-          docker push ${{ env.DAEMON_IMAGE_NAME }}:staging
           make build-controller TAG=${{ github.sha }}
           make push-controller TAG=${{ github.sha }}
           docker tag ${{ env.CONTROLLER_IMAGE_NAME }}:${{ github.sha }} ${{ env.CONTROLLER_IMAGE_NAME}}:staging

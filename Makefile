@@ -39,6 +39,12 @@ build-daemon:
 	fi
 	docker build -f daemon/api/grpc/Dockerfile -t lumbrjx/obzev0-grpc-daemon:$$TAG .
 
+build-daemon-stage:
+	docker build -f daemon/api/grpc/Dockerfile -t lumbrjx/obzev0-grpc-daemon:staging .
+push-daemon-stage:
+	docker push lumbrjx/obzev0-grpc-daemon:staging .
+
+
 build-controller:
 	@if [ -z "$$TAG" ]; then \
 		echo "Usage: make build-controller TAG=<tag>"; \
