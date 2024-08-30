@@ -9,6 +9,7 @@ import (
 
 	"obzev0/common/proto/latency"
 	pb "obzev0/common/proto/latency"
+	tca "obzev0/common/proto/tcAnalyser"
 
 	v1 "obzev0/controller/api/v1"
 
@@ -148,26 +149,41 @@ func handleAdd(obj interface{}, conn *grpc.ClientConn) {
 
 	name := obz.GetName()
 	namespace := obz.GetNamespace()
-	config := obz.Spec.Config
+	latencyConfig := obz.Spec.LatencyServiceConfig
+	tcAConfig := obz.Spec.TcAnalyserServiceConfig
 
 	klog.Infof("Custom Resource added: %s/%s", namespace, name)
-	klog.Infof("TCP Server Configuration: %+v", config)
+	klog.Infof("TCP Server Configuration: %+v", latencyConfig)
 	client := pb.NewLatencyServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	response, err := client.StartTcpServer(
 		ctx,
 		&pb.RequestForTcp{Config: &latency.TcpConfig{
-			ReqDelay: config.ReqDelay,
-			ResDelay: config.ResDelay,
-			Server:   config.Server,
-			Client:   config.Client,
+			ReqDelay: latencyConfig.ReqDelay,
+			ResDelay: latencyConfig.ResDelay,
+			Server:   latencyConfig.Server,
+			Client:   latencyConfig.Client,
 		}},
 	)
+
 	if err != nil {
 		log.Printf("Error calling gRPC method: %v\n", err)
 	} else {
 		fmt.Printf("Response from gRPC server: %s\n", response.Message)
+	}
+	client2 := tca.NewTcAnalyserServiceClient(conn)
+	rsp, err := client2.StartUserSpace(
+		ctx,
+		&tca.RequestForUserSpace{Config: &tca.TcConfig{
+			Interface: tcAConfig.NetIFace,
+		}},
+	)
+
+	if err != nil {
+		log.Printf("Error calling gRPC method: %v\n", err)
+	} else {
+		fmt.Printf("Response from gRPC server: %s\n", rsp.Message)
 	}
 
 	defer conn.Close()

@@ -39,6 +39,13 @@ build-daemon:
 	fi
 	docker build -f daemon/api/grpc/Dockerfile -t lumbrjx/obzev0-grpc-daemon:$$TAG .
 
+build-controller:
+	@if [ -z "$$TAG" ]; then \
+		echo "Usage: make build-controller TAG=<tag>"; \
+		exit 1; \
+	fi
+	docker build -f controller/Dockerfile -t lumbrjx/obzev0poc:$$TAG .
+
 push-daemon:
 	@if [ -z "$$TAG" ]; then \
 		echo "Usage: make push-daemon TAG=<tag>"; \
@@ -46,6 +53,12 @@ push-daemon:
 	fi
 	docker push lumbrjx/obzev0-grpc-daemon:$$TAG 
 
+push-controller:
+	@if [ -z "$$TAG" ]; then \
+		echo "Usage: make push-controller TAG=<tag>"; \
+		exit 1; \
+	fi
+	docker push lumbrjx/obzev0poc:$$TAG 
 
 generate-proto:
 	@if [ -z "$$PROTO_PATH" ]; then \
