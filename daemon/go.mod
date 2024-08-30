@@ -18,6 +18,7 @@ require github.com/sirupsen/logrus v1.9.3
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/cilium/ebpf v0.16.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
@@ -25,6 +26,9 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
+	github.com/vishvananda/netlink v1.3.0 // indirect
+	github.com/vishvananda/netns v0.0.4 // indirect
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240709173604-40e1e62336c5 // indirect
