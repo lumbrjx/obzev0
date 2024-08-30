@@ -39,7 +39,7 @@ spec:
           spec:
             description: Obzev0ResourceSpec defines the desired state of Obzev0Resource
             properties:
-              config:
+              latencySvcConfig:
                 description: Foo is an example field of Obzev0Resource. Edit obzev0resource_types.go
                   to remove/update
                 properties:
@@ -56,6 +56,11 @@ spec:
                     type: integer
                   server:
                     description: TCP server address
+                    type: string
+                type: object
+              tcAnalyserSvcConfig:
+                properties:
+                  netIFace:
                     type: string
                 type: object
             type: object

@@ -5,8 +5,10 @@ import (
 	"net"
 	"net/http"
 	ltc "obzev0/common/proto/latency"
+	tcanl "obzev0/common/proto/tcAnalyser"
 	"obzev0/daemon/api/grpc/interceptors"
 	"obzev0/daemon/api/grpc/latency"
+	tcanalyser "obzev0/daemon/api/grpc/tcAnalyser"
 	"os"
 	"time"
 
@@ -95,6 +97,9 @@ func main() {
 	)
 	s := latency.LatencyService{}
 	ltc.RegisterLatencyServiceServer(grpcServer, &s)
+
+	tc := tcanalyser.TcAnalyserService{}
+	tcanl.RegisterTcAnalyserServiceServer(grpcServer, &tc)
 
 	healthSrv := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)

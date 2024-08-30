@@ -17,7 +17,7 @@ type TcAnalyserService struct {
 	// metricsChan chan MetricsData
 }
 
-func (s *TcAnalyserService) StartTcpServer(
+func (s *TcAnalyserService) StartUserSpace(
 	ctx context.Context,
 	requestUserSpace *tcAnalyser.RequestForUserSpace,
 ) (*tcAnalyser.ResponseFromUserSpace, error) {
@@ -31,6 +31,7 @@ func (s *TcAnalyserService) StartTcpServer(
 	config := requestUserSpace.GetConfig()
 	log.Printf("recived %s", config.Interface)
 
+	go bpfLoader(config.Interface)
 	// conf := definitions.Config{
 	// 	Delays: definitions.DelaysConfig{
 	// 		ReqDelay: config.ReqDelay,
