@@ -16,7 +16,7 @@ dev-to-staging:
 	@git push origin $(STAGING_BRANCH)
 	@echo "Merged $(DEV_BRANCH) to $(STAGING_BRANCH) and pushed to origin."
 
-staging-to-release: dev-to-staging release
+staging-to-release: dev-to-staging 
 	@git checkout $(RELEASE_BRANCH)
 	@git merge $(STAGING_BRANCH)
 	@git push origin $(RELEASE_BRANCH)
