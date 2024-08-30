@@ -17,7 +17,7 @@ type TcAnalyserService struct {
 	// metricsChan chan MetricsData
 }
 
-func (s *TcAnalyserService) StartTcpServer(
+func (s *TcAnalyserService) StartUserSpace(
 	ctx context.Context,
 	requestUserSpace *tcAnalyser.RequestForUserSpace,
 ) (*tcAnalyser.ResponseFromUserSpace, error) {

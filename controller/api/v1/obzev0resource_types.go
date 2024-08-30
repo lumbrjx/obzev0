@@ -36,13 +36,18 @@ type TcpConfig struct {
 	Client string `json:"client,omitempty"`
 }
 
+type TcAnalyserConfig struct {
+	NetIFace string `json:"netIFace,omitempty"`
+}
+
 // Obzev0ResourceSpec defines the desired state of Obzev0Resource
 type Obzev0ResourceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Obzev0Resource. Edit obzev0resource_types.go to remove/update
-	Config TcpConfig `json:"config,omitempty"`
+	LatencyServiceConfig    TcpConfig        `json:"latencySvcConfig,omitempty"`
+	TcAnalyserServiceConfig TcAnalyserConfig `json:"tcAnalyserSvcConfig,omitempty"`
 }
 
 // Obzev0ResourceStatus defines the observed state of Obzev0Resource
@@ -68,8 +73,8 @@ type Obzev0Resource struct {
 
 // Obzev0ResourceList contains a list of Obzev0Resource
 type Obzev0ResourceList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
+	metav1.TypeMeta `                 json:",inline"`
+	metav1.ListMeta `                 json:"metadata,omitempty"`
 	Items           []Obzev0Resource `json:"items"`
 }
 
