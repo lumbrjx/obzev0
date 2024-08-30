@@ -14,7 +14,7 @@ if ! make install; then
 fi
 
 echo "Deploying the controller image into the cluster..."
-if ! make deploy IMG=lumbrjx/obzev0poc:${IMAGE_TAG}; then
+if ! make deploy IMG=lumbrjx/obzev0-k8s-controller:${IMAGE_TAG}; then
     echo "Failed to deploy the controller image."
     exit 1
 fi
