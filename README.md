@@ -21,3 +21,9 @@ Obzev0 is built using a microservices architecture, with the following component
 - **Controller:** Responsible for watching Custom Resource Definitions (CRDs) representing chaos scenarios and dispatching work to the DaemonSet.
 - **DaemonSet:** Runs on every node in the Kubernetes cluster and acts as a gRPC server. It executes the chaos scenarios and communicates with the eBPF program in the kernel space.
 - **eBPF Program:** Written in C, it runs in the kernel space and is responsible for monitoring and manipulating network traffic for performance monitoring.
+
+## ToDo
+
+[ ] complete Update/Delete informer functions
+[ ] integrate tcAnalyser service in k8s controller grpc calls
+

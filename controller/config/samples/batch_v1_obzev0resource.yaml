@@ -6,11 +6,15 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: obzev0resource-sample
 spec:
-  config:
-    reqDelay: 10   
-    resDelay: 20  
+  latencySvcConfig:
+    reqDelay: 0   
+    resDelay: 0  
     server: "7090"  
     client: "8080"  
+  tcAnalyserSvcConfig:
+    netIFace: "eth0"
+
+
 status:
   message: "Server started successfully"  
 

@@ -16,6 +16,7 @@ require (
 
 require (
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
+	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
 	k8s.io/apiserver v0.30.2 // indirect
 )
 

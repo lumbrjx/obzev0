@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Run tests
-        run: echo "Running tests..." # Replace with actual test command
+        run: echo "No tests for now..." # Replace with actual test command
 
   build-and-push-staging:
     needs: test
@@ -41,12 +41,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Daemon Docker image
+      - name: Build and push Daemon, Controller Docker images
         run: |
           make build-daemon TAG=${{ github.sha }}
           make push-daemon TAG=${{ github.sha }}
           docker tag ${{ env.DAEMON_IMAGE_NAME }}:${{ github.sha }} ${{ env.DAEMON_IMAGE_NAME }}:staging
           docker push ${{ env.DAEMON_IMAGE_NAME }}:staging
+          make build-controller TAG=${{ github.sha }}
+          make push-controller TAG=${{ github.sha }}
+          docker tag ${{ env.CONTROLLER_IMAGE_NAME }}:${{ github.sha }} ${{ env.CONTROLLER_IMAGE_NAME}}:staging
+          docker push ${{ env.CONTROLLER_IMAGE_NAME}}:staging
 
   create-release:
     if: github.ref == 'refs/heads/release'
@@ -72,6 +76,11 @@ jobs:
           docker push ${{ env.DAEMON_IMAGE_NAME }}:v${{ github.run_number }}
           docker tag ${{ env.DAEMON_IMAGE_NAME }}:v${{ github.run_number }} ${{ env.DAEMON_IMAGE_NAME }}:latest
           docker push ${{ env.DAEMON_IMAGE_NAME }}:latest
+          docker pull ${{ env.CONTROLLER_IMAGE_NAME}}:staging
+          docker tag ${{ env.CONTROLLER_IMAGE_NAME}}:staging ${{ env.CONTROLLER_IMAGE_NAME}}:v${{ github.run_number }}
+          docker push ${{ env.CONTROLLER_IMAGE_NAME}}:v${{ github.run_number }}
+          docker tag ${{ env.CONTROLLER_IMAGE_NAME}}:v${{ github.run_number }} ${{ env.CONTROLLER_IMAGE_NAME}}:latest
+          docker push ${{ env.CONTROLLER_IMAGE_NAME}}:latest
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
