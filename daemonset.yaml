@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: grpc-server
-        image: lumbrjx/obzev0-grpc-daemon:1.0.8-pre
+        image: lumbrjx/obzev0-grpc-daemon:latest
         ports:
         - containerPort: 50051
         livenessProbe:
