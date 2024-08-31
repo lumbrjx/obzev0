@@ -42,7 +42,7 @@ build-daemon:
 build-daemon-stage:
 	docker build -f daemon/api/grpc/Dockerfile -t lumbrjx/obzev0-grpc-daemon:staging .
 push-daemon-stage:
-	docker push lumbrjx/obzev0-grpc-daemon:staging .
+	docker push lumbrjx/obzev0-grpc-daemon:staging 
 
 
 build-controller:

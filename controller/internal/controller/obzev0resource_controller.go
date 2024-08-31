@@ -5,11 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
-
-	"obzev0/common/proto/latency"
-	pb "obzev0/common/proto/latency"
-	tca "obzev0/common/proto/tcAnalyser"
 
 	v1 "obzev0/controller/api/v1"
 
@@ -19,7 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
@@ -104,28 +98,13 @@ func SetupInformers(mgr ctrl.Manager) {
 				log.Printf("Failed to connect to %s: %v\n", address, err)
 				continue
 			}
-			client := pb.NewLatencyServiceClient(conn)
-			response, err := client.StartTcpServer(
-				context.Background(),
-				&pb.RequestForTcp{Config: &latency.TcpConfig{
-					ReqDelay: 1,
-					ResDelay: 1,
-					Server:   "7090",
-					Client:   "8080",
-				}},
-			)
-			if err != nil {
-				log.Printf("Error calling gRPC method: %v\n", err)
-			} else {
-				fmt.Printf("Response from gRPC server: %s\n", response.Message)
-			}
 
 			crInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 				AddFunc: func(obj interface{}) {
 					handleAdd(obj, conn)
 				},
 				UpdateFunc: func(oldObj, newObj interface{}) {
-					handleUpdate(oldObj, newObj)
+					handleUpdate(newObj, conn)
 				},
 				DeleteFunc: func(obj interface{}) {
 					handleDelete(obj)
@@ -137,86 +116,5 @@ func SetupInformers(mgr ctrl.Manager) {
 				address,
 			)
 		}
-	}
-}
-
-func handleAdd(obj interface{}, conn *grpc.ClientConn) {
-	obz, ok := obj.(*v1.Obzev0Resource)
-	if !ok {
-		klog.Errorf("Error converting object to Obzev0Resource: %v", obj)
-		return
-	}
-
-	name := obz.GetName()
-	namespace := obz.GetNamespace()
-	latencyConfig := obz.Spec.LatencyServiceConfig
-	tcAConfig := obz.Spec.TcAnalyserServiceConfig
-
-	klog.Infof("Custom Resource added: %s/%s", namespace, name)
-	klog.Infof("TCP Server Configuration: %+v", latencyConfig)
-	client := pb.NewLatencyServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	response, err := client.StartTcpServer(
-		ctx,
-		&pb.RequestForTcp{Config: &latency.TcpConfig{
-			ReqDelay: latencyConfig.ReqDelay,
-			ResDelay: latencyConfig.ResDelay,
-			Server:   latencyConfig.Server,
-			Client:   latencyConfig.Client,
-		}},
-	)
-
-	if err != nil {
-		log.Printf("Error calling gRPC method: %v\n", err)
-	} else {
-		fmt.Printf("Response from gRPC server: %s\n", response.Message)
-	}
-	client2 := tca.NewTcAnalyserServiceClient(conn)
-	rsp, err := client2.StartUserSpace(
-		ctx,
-		&tca.RequestForUserSpace{Config: &tca.TcConfig{
-			Interface: tcAConfig.NetIFace,
-		}},
-	)
-
-	if err != nil {
-		log.Printf("Error calling gRPC method: %v\n", err)
-	} else {
-		fmt.Printf("Response from gRPC server: %s\n", rsp.Message)
-	}
-
-	defer conn.Close()
-}
-
-func handleUpdate(oldObj, newObj interface{}) {
-	key, err := cache.MetaNamespaceKeyFunc(newObj)
-	if err != nil {
-		klog.Errorf("Error getting key for object: %v", err)
-		return
-	}
-	klog.Infof("Custom Resource updated: %s", key)
-}
-
-func handleDelete(obj interface{}) {
-	key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-	if err != nil {
-		klog.Errorf("Error getting key for object: %v", err)
-		return
-	}
-	klog.Infof("Custom Resource deleted: %s", key)
-}
-
-func listNodes(clientset *kubernetes.Clientset) {
-	nodes, err := clientset.CoreV1().
-		Nodes().
-		List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		klog.Fatalf("Error listing nodes: %v", err)
-	}
-
-	klog.Info("Listing all nodes in the cluster:")
-	for _, node := range nodes.Items {
-		klog.Infof("Node Name: %s", node.Name)
 	}
 }
