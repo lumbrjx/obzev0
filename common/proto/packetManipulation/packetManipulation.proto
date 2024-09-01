@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package packetManipulationServ;
+option go_package = "/packetManipulation";
+import "validate/validate.proto";
+
+service PacketManipulationService {
+  rpc StartManipulationProxy(RequestForManipulationProxy)
+      returns (ResponseFromManipulationProxy) {};
+}
+
+message pctmConfig {
+  string server = 1 [ (validate.rules).string.min_len = 1 ];
+  string client = 2 [ (validate.rules).string.min_len = 1 ];
+  DurationConfig duration_config = 3
+      [ (validate.rules).message.required = true ];
+}
+
+message DurationConfig {
+  int32 duration_seconds = 1 [ (validate.rules).int32 = {gte : 0} ];
+  float drop_rate = 2 [ (validate.rules).float = {gte : 0, lte : 1} ]; // Added drop rate for packet dropping
+  float corrupt_rate = 6 [ (validate.rules).float = {gte : 0, lte : 1} ]; // Added rate for packet corruption
+}
+
+message RequestForManipulationProxy {
+  pctmConfig config = 1 [ (validate.rules).message.required = true ];
+}
+
+message ResponseFromManipulationProxy { string message = 1; }
+

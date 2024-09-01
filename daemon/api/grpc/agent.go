@@ -2,8 +2,10 @@ package main
 
 import (
 	ltc "obzev0/common/proto/latency"
+	"obzev0/common/proto/packetManipulation"
 	tcanl "obzev0/common/proto/tcAnalyser"
 	"obzev0/daemon/api/grpc/latency"
+	packetmanipulation "obzev0/daemon/api/grpc/packetManipulation"
 	tcanalyser "obzev0/daemon/api/grpc/tcAnalyser"
 
 	"github.com/sirupsen/logrus"
@@ -21,6 +23,9 @@ func serviceAgent(grpcServer *grpc.Server, rpcLogger *logrus.Entry) {
 	// Traffic Controller Service
 	tc := tcanalyser.TcAnalyserService{}
 	tcanl.RegisterTcAnalyserServiceServer(grpcServer, &tc)
+
+	pct := packetmanipulation.PacketManipulationService{}
+	packetManipulation.RegisterPacketManipulationServiceServer(grpcServer, &pct)
 
 	// Health Checking Serivce
 	healthSrv := health.NewServer()
