@@ -24,6 +24,8 @@ Obzev0 is built using a microservices architecture, with the following component
 
 ## ToDo
 
-[ ] complete Update/Delete informer functions
-[ ] integrate tcAnalyser service in k8s controller grpc calls
-
+- [ ] collect deleted/corrupted packets number as metrics
+- [ ] create packetManipulation k8s-controller call
+- [ ] use reqSimulator for latency service
+- [ ] Pod, Node failure
+- [ ] add helm charts
