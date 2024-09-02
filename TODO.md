@@ -6,6 +6,6 @@
 - [ ] implement UDP drop/corruption 
 - [ ] implement UDP latency
 - [ ] create packetManipulation k8s-controller call
-- [ ] use reqSimulator for latency service
+~- [ ] use reqSimulator for latency service~
 - [ ] Pod, Node failure + DDoS on the leftovers
 - [ ] add helm charts
