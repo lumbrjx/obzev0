@@ -42,7 +42,6 @@ func handleConnection(
 		fmt.Println("error sending data:", err)
 		return
 	}
-
 	// deadline := time.Now().Add(1 * time.Second)
 	// conn.SetDeadline(deadline)
 	// clientConn.SetDeadline(deadline)

@@ -39,6 +39,7 @@ func DropPackets(
 		if rand.Float64() < dropRate {
 			if rand.Float64() < 0.5 {
 				log.Printf("Packet dropped: %s\n", string(buf[:n]))
+				Data.DropedCount += 1
 				return
 			}
 
@@ -55,11 +56,13 @@ func DropPackets(
 						corruptIndex,
 						string(buf[:n]),
 					)
+					Data.CorruptedCount += 1
 				}
 			} else {
 				corruptIndex := rand.Intn(n)
 				buf[corruptIndex] = '#' // Arbitrary non-critical corruption
 				log.Printf("Non-Critical corruption at byte %d: %s\n", corruptIndex, string(buf[:n]))
+				Data.CorruptedCount += 1
 			}
 		}
 

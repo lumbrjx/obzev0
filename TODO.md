@@ -1,7 +1,7 @@
 <h1 align="center">TODO</h1>
 
-- [ ] collect deleted/corrupted packets number as metrics
-- [ ] Create Metrics system and make it robust for each service
+- [x] collect deleted/corrupted packets number as metrics
+- [x] Create Metrics system and make it robust for each service
 - [ ] Create Proxy factory
 - [ ] implement UDP drop/corruption 
 - [ ] implement UDP latency

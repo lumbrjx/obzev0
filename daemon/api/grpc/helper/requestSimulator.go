@@ -37,8 +37,10 @@ func ReqSimulator(
 		}
 		resp.Body.Close()
 
+		log.Printf("Client:")
 		log.Printf("Response status: %s", resp.Status)
 		log.Printf("Response body: %s", string(body))
+		log.Printf("\n----------------------------------------")
 
 		time.Sleep(1 * time.Second)
 	}

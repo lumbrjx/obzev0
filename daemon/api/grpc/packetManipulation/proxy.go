@@ -10,6 +10,16 @@ import (
 	"time"
 )
 
+type MetricsData struct {
+	DropedCount    int64
+	CorruptedCount int64
+}
+
+var (
+	Mtrx = make(chan MetricsData)
+	Data = &MetricsData{}
+)
+
 type ProxyConfig struct {
 	Server      string
 	Client      string
@@ -73,7 +83,7 @@ func Proxy(conf ProxyConfig) {
 	listener.Close()
 
 	fmt.Println("Timeout reached. Shutting down server...")
-
+	Mtrx <- *Data
 	wg.Wait()
 
 }
