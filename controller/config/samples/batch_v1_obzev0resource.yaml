@@ -7,14 +7,21 @@ metadata:
   name: obzev0resource-sample
 spec:
   latencySvcConfig:
-    reqDelay: 0   
-    resDelay: 0  
-    server: "7090"  
-    client: "8080"  
+    enabled: false 
+    reqDelay: 3 
+    resDelay: 5 
+    server: "7080"
+    client: "8080"
   tcAnalyserSvcConfig:
+    enabled: false
     netIFace: "eth0"
-
-
+  packetManipulationSvcConfig:
+    enabled: true 
+    server: "7090"
+    client: "8080"
+    dropRate: "0.8"
+    corruptRate: "0.4"
+    durationSeconds: 2 
 status:
-  message: "Server started successfully"  
+  message: "Server started successfully"
 

@@ -93,6 +93,7 @@ func SetupInformers(mgr ctrl.Manager) {
 			conn, err := grpc.NewClient(
 				address,
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				grpc.WithChainUnaryInterceptor(LoggingInterceptor),
 			)
 			if err != nil {
 				log.Printf("Failed to connect to %s: %v\n", address, err)

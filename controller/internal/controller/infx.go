@@ -16,25 +16,29 @@ func processCustomResource(obz *v1.Obzev0Resource, conn *grpc.ClientConn) {
 	namespace := obz.GetNamespace()
 	latencyConfig := obz.Spec.LatencyServiceConfig
 	tcAConfig := obz.Spec.TcAnalyserServiceConfig
+	pctmConfig := obz.Spec.PacketManipulationServiceConfig
 
 	klog.Infof("Custom Resource processed: %s/%s", namespace, name)
 	klog.Infof("TCP Server Configuration: %+v", latencyConfig)
 	klog.Infof("Tc Analyser Configuration: %+v", tcAConfig)
+	klog.Infof("Packet Manipulation Configuration: %+v", pctmConfig)
 
 	svcConfig := GrpcServiceConfig{
 		LatencyConfig: latencyConfig,
 		TcAConfig:     tcAConfig,
+		PctmConfig:    pctmConfig,
 	}
 
 	err := callGrpcServices(conn, svcConfig)
 	if err != nil {
 		log.Printf("Error calling gRPC services: %v\n", err)
 	}
+	klog.Infof("Closing gRPC connection for: %s/%s", namespace, name)
 
-	defer conn.Close()
 }
 
 func handleAdd(obj interface{}, conn *grpc.ClientConn) {
+	CheckConnection(conn)
 	obz, ok := obj.(*v1.Obzev0Resource)
 	if !ok {
 		klog.Errorf("Error converting object to Obzev0Resource: %v", obj)
@@ -45,6 +49,7 @@ func handleAdd(obj interface{}, conn *grpc.ClientConn) {
 }
 
 func handleUpdate(newObj interface{}, conn *grpc.ClientConn) {
+	CheckConnection(conn)
 	obz, ok := newObj.(*v1.Obzev0Resource)
 	if !ok {
 		klog.Errorf("Error converting object to Obzev0Resource: %v", newObj)

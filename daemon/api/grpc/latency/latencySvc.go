@@ -42,6 +42,7 @@ func handleConnection(
 		fmt.Println("error sending data:", err)
 		return
 	}
+
 	// deadline := time.Now().Add(1 * time.Second)
 	// conn.SetDeadline(deadline)
 	// clientConn.SetDeadline(deadline)
@@ -80,7 +81,7 @@ type inner_proxy struct {
 
 func New(t time.Duration) *inner_proxy {
 	return &inner_proxy{
-		data: make(chan []byte, 1),
+		data: make(chan []byte),
 		l:    t,
 	}
 }
