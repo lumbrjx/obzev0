@@ -111,7 +111,7 @@ func Pipe(dst io.Writer, src io.Reader, r, s string, mtr *MetricsData) {
 	mtr.BytesNumber = append(mtr.BytesNumber, n)
 }
 
-func LaunchTcp(conf definitions.Config) {
+func LaunchTcp(conf definitions.Config) error {
 	listener, err := net.Listen("tcp", ":"+conf.Server.Port)
 	if err != nil {
 		fmt.Println("Error starting TCP server:", err)
@@ -139,9 +139,9 @@ func LaunchTcp(conf definitions.Config) {
 				}
 			}
 
-			clientConn, err := net.Dial("tcp", ":"+conf.Client.Port)
+			clientConn, err := net.Dial("tcp", conf.Client.Port)
 			if err != nil {
-				log.Fatalf("Error connecting to client: %v", err)
+				log.Printf("Error connecting to client: %v", err)
 			}
 
 			fmt.Println("client connected:", conn.RemoteAddr().String())
@@ -157,4 +157,5 @@ func LaunchTcp(conf definitions.Config) {
 	wg.Wait()
 	fmt.Println("Server has shut down gracefully, Collecting data...")
 	Mtrx <- *Data
+	return nil
 }

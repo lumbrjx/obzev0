@@ -28,7 +28,7 @@ type ProxyConfig struct {
 	Timeout     time.Duration
 }
 
-func Proxy(conf ProxyConfig) {
+func Proxy(conf ProxyConfig) error {
 	listener, err := net.Listen("tcp", ":"+conf.Server)
 	if err != nil {
 		fmt.Println("Error starting TCP server:", err)
@@ -85,5 +85,6 @@ func Proxy(conf ProxyConfig) {
 	fmt.Println("Timeout reached. Shutting down server...")
 	Mtrx <- *Data
 	wg.Wait()
+	return nil
 
 }

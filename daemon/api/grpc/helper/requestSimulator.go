@@ -1,46 +1,47 @@
 package helper
 
 import (
-	"io"
 	"log"
-	"net/http"
-	"net/url"
+	"net"
 	"time"
 )
 
 func ReqSimulator(
-	proxyAddr string,
-	targetURL string,
+	targetAddr string,
 	duration time.Duration,
 ) error {
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(&url.URL{Scheme: "http", Host: proxyAddr}),
-		},
-		Timeout: duration,
-	}
-
 	endTime := time.Now().Add(duration)
 
 	for time.Now().Before(endTime) {
-		resp, err := client.Get(targetURL)
+		conn, err := net.Dial("tcp", ":"+targetAddr)
 		if err != nil {
-			log.Printf("Failed to make request: %v", err)
+			log.Printf("Failed to connect to target: %v", err)
 			return err
 		}
 
-		body, err := io.ReadAll(resp.Body)
+		request := "GET / HTTP/1.1\r\n" +
+			"Host: " + targetAddr + "\r\n" +
+			"Connection: close\r\n" +
+			"\r\n"
+
+		_, err = conn.Write([]byte(request))
 		if err != nil {
-			log.Printf("Failed to read response body: %v", err)
-			resp.Body.Close()
+			log.Printf("Failed to write to target: %v", err)
+			conn.Close()
 			return err
 		}
-		resp.Body.Close()
 
-		log.Printf("Client:")
-		log.Printf("Response status: %s", resp.Status)
-		log.Printf("Response body: %s", string(body))
-		log.Printf("\n----------------------------------------")
+		buf := make([]byte, 1024)
+		n, err := conn.Read(buf)
+		if err != nil {
+			log.Printf("Failed to read from target: %v", err)
+			conn.Close()
+			return err
+		}
+
+		log.Printf("Received response: %s", string(buf[:n]))
+
+		conn.Close()
 
 		time.Sleep(1 * time.Second)
 	}

@@ -2,14 +2,15 @@
 
 - [x] collect deleted/corrupted packets number as metrics
 - [x] Create Metrics system and make it robust for each service
+- [ ] Better logs
 - [ ] build patched controller and daemon
-- [ ] fix the reqSimulator client/sevrver addr
+- [x] fix the reqSimulator client/server addr
 - [ ] Controller reconnection retry 
 - [ ] Create Proxy factory
 - [ ] implement UDP drop/corruption 
 - [ ] implement UDP latency
-- [ ] create packetManipulation k8s-controller call
-- ~- [ ] use reqSimulator for latency service~
+- [x] create packetManipulation k8s-controller call
+- [x] use reqSimulator for latency service
 - [ ] Pod, Node failure 
 - [ ] add helm charts
 - [ ] create a CLI only version (obzevMini)

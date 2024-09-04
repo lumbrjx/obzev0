@@ -2,9 +2,11 @@ package latency
 
 import (
 	"log"
+	"time"
 
 	"obzev0/common/definitions"
 	"obzev0/common/proto/latency"
+	"obzev0/daemon/api/grpc/helper"
 
 	"golang.org/x/net/context"
 
@@ -31,7 +33,7 @@ func (s *LatencyService) StartTcpServer(
 	}
 
 	config := requestForTcp.GetConfig()
-	log.Printf("recived %s", config.Client)
+	log.Printf("Received config: %v", config)
 
 	conf := definitions.Config{
 		Delays: definitions.DelaysConfig{
@@ -45,8 +47,25 @@ func (s *LatencyService) StartTcpServer(
 			Port: config.Client,
 		},
 	}
-	go LaunchTcp(conf)
+
+	go func() {
+		if err := LaunchTcp(conf); err != nil {
+			log.Printf("Error in LaunchTcp: %v", err)
+		}
+	}()
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		err := helper.ReqSimulator(
+			config.Server,
+			time.Duration(1)*time.Second,
+		)
+		if err != nil {
+			log.Printf("Error in ReqSimulator: %v", err)
+		}
+	}()
+
 	return &latency.ResponseFromTcp{
-		Message: "Tcp server started",
+		Message: "TCP server started successfully",
 	}, nil
 }
