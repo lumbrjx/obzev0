@@ -58,7 +58,8 @@ func (s *LatencyService) StartTcpServer(
 		time.Sleep(2 * time.Second)
 		err := helper.ReqSimulator(
 			config.Server,
-			time.Duration(1)*time.Second,
+			true,
+			time.Duration(0)*time.Second,
 		)
 		if err != nil {
 			log.Printf("Error in ReqSimulator: %v", err)

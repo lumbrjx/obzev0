@@ -59,7 +59,7 @@ func Proxy(conf ProxyConfig) error {
 				}
 			}
 
-			clientConn, err := net.Dial("tcp", ":"+conf.Client)
+			clientConn, err := net.Dial("tcp", conf.Client)
 			if err != nil {
 				log.Printf("Error connecting to client: %v", err)
 				conn.Close()

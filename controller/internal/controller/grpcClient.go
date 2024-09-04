@@ -80,7 +80,7 @@ func callGrpcServices(
 			ctx,
 			&pca.RequestForManipulationProxy{Config: &pca.PctmConfig{
 				Server: config.PctmConfig.Server,
-				Client: config.LatencyConfig.Server,
+				Client: config.PctmConfig.Client,
 
 				DurationConfig: &pca.DurationConfig{
 					DurationSeconds: config.PctmConfig.DurationSeconds,
