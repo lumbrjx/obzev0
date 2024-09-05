@@ -26,18 +26,25 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 type TcpConfig struct {
-	// Delay in request handling
-	ReqDelay int32 `json:"reqDelay,omitempty"`
-	// Delay in response handling
-	ResDelay int32 `json:"resDelay,omitempty"`
-	// TCP server address
-	Server string `json:"server,omitempty"`
-	// TCP client address
-	Client string `json:"client,omitempty"`
+	Enabled  bool   `json:"enabled,omitempty"`
+	ReqDelay int32  `json:"reqDelay,omitempty"`
+	ResDelay int32  `json:"resDelay,omitempty"`
+	Server   string `json:"server,omitempty"`
+	Client   string `json:"client,omitempty"`
 }
 
 type TcAnalyserConfig struct {
+	Enabled  bool   `json:"enabled,omitempty"`
 	NetIFace string `json:"netIFace,omitempty"`
+}
+
+type PacketManipulationConfig struct {
+	Enabled         bool   `json:"enabled,omitempty"`
+	Server          string `json:"server,omitempty"`
+	Client          string `json:"client,omitempty"`
+	DurationSeconds int32  `json:"durationSeconds,omitempty"`
+	DropRate        string `json:"dropRate,omitempty"`
+	CorruptRate     string `json:"corruptRate,omitempty"`
 }
 
 // Obzev0ResourceSpec defines the desired state of Obzev0Resource
@@ -46,8 +53,9 @@ type Obzev0ResourceSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Obzev0Resource. Edit obzev0resource_types.go to remove/update
-	LatencyServiceConfig    TcpConfig        `json:"latencySvcConfig,omitempty"`
-	TcAnalyserServiceConfig TcAnalyserConfig `json:"tcAnalyserSvcConfig,omitempty"`
+	LatencyServiceConfig            TcpConfig                `json:"latencySvcConfig,omitempty"`
+	TcAnalyserServiceConfig         TcAnalyserConfig         `json:"tcAnalyserSvcConfig,omitempty"`
+	PacketManipulationServiceConfig PacketManipulationConfig `json:"packetManipulationSvcConfig,omitempty"`
 }
 
 // Obzev0ResourceStatus defines the observed state of Obzev0Resource

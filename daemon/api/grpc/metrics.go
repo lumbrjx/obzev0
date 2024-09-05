@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"obzev0/daemon/api/grpc/latency"
+	packetmanipulation "obzev0/daemon/api/grpc/packetManipulation"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,6 +27,22 @@ var (
 		},
 		[]string{"method"},
 	)
+	droppedPacketsHistogram = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "grpc_server_dropped_packets_count",
+			Help:    "Dropped packets count during packet manipulation",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method"},
+	)
+	corruptedPacketsHistogram = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "grpc_server_corrupted_packets_count",
+			Help:    "Corrupted packets count during packet manipulation",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method"},
+	)
 )
 
 func recordMetrics(method string, bytes int64, responseTime time.Duration) {
@@ -39,11 +56,23 @@ func recordMetrics(method string, bytes int64, responseTime time.Duration) {
 	responseTimeHistogram.WithLabelValues(method).Observe(responseTime.Seconds())
 }
 
-func waitForMetrics() {
-	for {
-		data := <-latency.Mtrx
-		log.Printf("Received data: %+v", data)
+func processPacketManipulationData() {
+	select {
+	case dropData := <-packetmanipulation.Mtrx:
+		log.Printf("Received packet manipulation data: %+v", dropData)
+		droppedPacketsHistogram.WithLabelValues("PacketManipulationService").
+			Observe(float64(dropData.DropedCount))
+		corruptedPacketsHistogram.WithLabelValues("PacketManipulationService").
+			Observe(float64(dropData.CorruptedCount))
+	default:
 
+	}
+}
+
+func processLatencyData() {
+	select {
+	case data := <-latency.Mtrx:
+		log.Printf("Received latency data: %+v", data)
 		for _, bytes := range data.BytesNumber {
 			recordMetrics(
 				"LatencyService",
@@ -51,5 +80,14 @@ func waitForMetrics() {
 				time.Duration(data.ResponseTime),
 			)
 		}
+	default:
+	}
+}
+
+func waitForMetrics() {
+	for {
+		processPacketManipulationData()
+		processLatencyData()
+		time.Sleep(1 * time.Second)
 	}
 }

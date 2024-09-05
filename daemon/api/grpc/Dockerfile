@@ -22,6 +22,7 @@ COPY daemon/ .
 # Modify go.mod and build Go application
 RUN sed -i 's|replace obzev0/common => ../common|replace obzev0/common => ./common|' go.mod
 RUN go mod download
+RUN go mod vendor
 RUN CGO_ENABLED=0 GOOS=linux go build -o grpc-server ./api/grpc/*.go
 
 # Copy and compile eBPF program

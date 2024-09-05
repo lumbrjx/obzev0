@@ -41,46 +41,32 @@ func (s *PacketManipulationService) StartManipulationProxy(
 		Client: config.Client,
 	}
 
-	done := make(chan struct{})
-
 	// Start proxy in a goroutine
-	go func() {
-		if config.DurationConfig.DurationSeconds != 0 {
-			proxyConfiguration.DropRate = float64(config.DurationConfig.DropRate)
-			proxyConfiguration.Timeout = time.Duration(
-				config.DurationConfig.DurationSeconds,
-			)
+	if config.DurationConfig.DurationSeconds != 0 {
+		proxyConfiguration.DropRate = float64(config.DurationConfig.DropRate)
+		proxyConfiguration.Timeout = time.Duration(
+			config.DurationConfig.DurationSeconds,
+		)
 
-			go Proxy(proxyConfiguration)
-			for {
-				select {
-				case <-done:
-					break
-				default:
-					time.Sleep(2 * time.Second)
-					err := helper.ReqSimulator(
-						"localhost:7090",
-						"http://localhost:8080",
-						time.Duration(
-							config.DurationConfig.DurationSeconds,
-						)*time.Second,
-					)
-					if err != nil {
-						log.Printf("Request simulation error: %v", err)
-					}
-				}
+		go func() {
+			err := Proxy(proxyConfiguration)
+			if err != nil {
+				log.Printf("Error in manipulation Proxy: %v", err)
 			}
+		}()
+		time.Sleep(2 * time.Second)
+		err := helper.ReqSimulator(
+			config.Server,
+			false,
+			time.Duration(
+				config.DurationConfig.DurationSeconds,
+			)*time.Second,
+		)
+		if err != nil {
+			log.Printf("Request simulation error: %v", err)
 		}
+	}
 
-	}()
-
-	time.AfterFunc(
-		time.Duration(config.DurationConfig.DurationSeconds)*time.Second,
-		func() {
-			close(done)
-			log.Println("Stopping the proxy after duration")
-		},
-	)
 	return &packetManipulation.ResponseFromManipulationProxy{
 		Message: "User Space program staus :",
 	}, nil

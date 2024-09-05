@@ -1,47 +1,43 @@
 package helper
 
 import (
-	"io"
+	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 )
 
-func ReqSimulator(
-	proxyAddr string,
-	targetURL string,
-	duration time.Duration,
-) error {
-	client := &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(&url.URL{Scheme: "http", Host: proxyAddr}),
-		},
-		Timeout: duration,
+func sendReq(client *http.Client, targetAddr string) {
+	resp, err := client.Get("http://127.0.0.1:" + targetAddr)
+	if err != nil {
+		log.Printf("Failed to send request: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp == nil {
+		log.Println("Response is nil")
+		return
 	}
 
-	endTime := time.Now().Add(duration)
+	log.Printf("Response status: %s", resp.Status)
+	time.Sleep(2 * time.Second)
+}
 
-	for time.Now().Before(endTime) {
-		resp, err := client.Get(targetURL)
-		if err != nil {
-			log.Printf("Failed to make request: %v", err)
-			return err
+func ReqSimulator(targetAddr string, oneTime bool, duration time.Duration) error {
+	client := &http.Client{}
+
+	if oneTime {
+		sendReq(client, targetAddr)
+	} else {
+		startTime := time.Now()
+		endTime := startTime.Add(duration - 3*time.Second)
+
+		for time.Now().Before(endTime) {
+			sendReq(client, targetAddr)
 		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Printf("Failed to read response body: %v", err)
-			resp.Body.Close()
-			return err
-		}
-		resp.Body.Close()
-
-		log.Printf("Response status: %s", resp.Status)
-		log.Printf("Response body: %s", string(body))
-
-		time.Sleep(1 * time.Second)
 	}
 
+	fmt.Println("Timeout reached, stopping the requests.")
 	return nil
 }
