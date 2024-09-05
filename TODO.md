@@ -2,7 +2,7 @@
 
 - [x] collect deleted/corrupted packets number as metrics
 - [x] Create Metrics system and make it robust for each service
-- [ ] Better logs
+- [x] Better logs
 - [ ] build patched controller and daemon
 - [x] fix the reqSimulator client/server addr
 - [x] Controller reconnection retry 
