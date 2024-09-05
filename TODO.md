@@ -5,8 +5,8 @@
 - [ ] Better logs
 - [ ] build patched controller and daemon
 - [x] fix the reqSimulator client/server addr
-- [ ] Controller reconnection retry 
-- [ ] Create Proxy factory
+- [x] Controller reconnection retry 
+- ~[ ] Create Proxy factory~
 - [ ] implement UDP drop/corruption 
 - [ ] implement UDP latency
 - [x] create packetManipulation k8s-controller call
