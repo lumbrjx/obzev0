@@ -1,10 +1,9 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: my-express-app
   namespace: default
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: my-express-app
@@ -15,7 +14,6 @@ spec:
     spec:
       containers:
       - name: my-express
-        image: lumbrjx/my-express:latest # Use the name and tag of your Docker image
+        image: lumbrjx/my-express:latest
         ports:
         - containerPort: 8080
-
