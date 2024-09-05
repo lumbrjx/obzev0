@@ -43,10 +43,6 @@ func handleConnection(
 		return
 	}
 
-	// deadline := time.Now().Add(1 * time.Second)
-	// conn.SetDeadline(deadline)
-	// clientConn.SetDeadline(deadline)
-
 	p1 := New(time.Duration(cnf.Delays.ReqDelay))
 	p2 := New(time.Duration(cnf.Delays.ResDelay))
 

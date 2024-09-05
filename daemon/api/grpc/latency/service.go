@@ -62,11 +62,12 @@ func (s *LatencyService) StartTcpServer(
 			time.Duration(0)*time.Second,
 		)
 		if err != nil {
+
 			log.Printf("Error in ReqSimulator: %v", err)
 		}
 	}()
 
 	return &latency.ResponseFromTcp{
-		Message: "TCP server started successfully",
+		Message: "TCP server Request Completed",
 	}, nil
 }
