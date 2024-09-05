@@ -1,11 +1,10 @@
 package tcanalyser
 
 import (
+	"context"
 	"log"
 
 	"obzev0/common/proto/tcAnalyser"
-
-	"golang.org/x/net/context"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,8 +12,6 @@ import (
 
 type TcAnalyserService struct {
 	tcAnalyser.UnimplementedTcAnalyserServiceServer
-	// metrics     MetricsData
-	// metricsChan chan MetricsData
 }
 
 func (s *TcAnalyserService) StartUserSpace(
@@ -22,30 +19,27 @@ func (s *TcAnalyserService) StartUserSpace(
 	requestUserSpace *tcAnalyser.RequestForUserSpace,
 ) (*tcAnalyser.ResponseFromUserSpace, error) {
 	if err := requestUserSpace.Config.Validate(); err != nil {
+		log.Printf("Invalid request: %v", err)
 		return nil, status.Errorf(
 			codes.InvalidArgument,
 			"Invalid request: %v",
 			err,
 		)
 	}
-	config := requestUserSpace.GetConfig()
-	log.Printf("recived %s", config.Interface)
 
-	go bpfLoader(config.Interface)
-	// conf := definitions.Config{
-	// 	Delays: definitions.DelaysConfig{
-	// 		ReqDelay: config.ReqDelay,
-	// 		ResDelay: config.ResDelay,
-	// 	},
-	// 	Server: definitions.ServerConfig{
-	// 		Port: config.Server,
-	// 	},
-	// 	Client: definitions.ClientConfig{
-	// 		Port: config.Client,
-	// 	},
-	// }
-	// go LaunchTcp(conf)
+	config := requestUserSpace.GetConfig()
+	log.Printf("- Received TC Configuration: Interface=%s", config.Interface)
+
+	go func() {
+		if err := bpfLoader(config.Interface); err != nil {
+			log.Printf(
+				"Error loading BPF program: %v",
+				err,
+			)
+		}
+	}()
+
 	return &tcAnalyser.ResponseFromUserSpace{
-		Message: "User Space program staus :",
+		Message: "User Space program status: Loading",
 	}, nil
 }

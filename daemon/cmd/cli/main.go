@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"obzev0/common/definitions"
-	"obzev0/common/proto/tcAnalyser"
+	"obzev0/common/proto/latency"
 	"os"
 	"time"
 
@@ -38,31 +38,31 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	// c := latency.NewLatencyServiceClient(conn)
-	t := tcAnalyser.NewTcAnalyserServiceClient(conn)
+	c := latency.NewLatencyServiceClient(conn)
+	// t := tcAnalyser.NewTcAnalyserServiceClient(conn)
 
-	// cnf, err := LoadConfig("obzevConf.yaml")
-	// config := &latency.TcpConfig{
-	// 	ReqDelay: cnf.Delays.ReqDelay,
-	// 	ResDelay: cnf.Delays.ResDelay,
-	// 	Server:   cnf.Server.Port,
-	// 	Client:   cnf.Client.Port,
-	// }
-	// println(
-	// 	config.Client,
-	// 	config.Server,
-	// 	config.ResDelay,
-	// 	config.ReqDelay,
-	// )
-
-	req2 := &tcAnalyser.RequestForUserSpace{
-		Config: &tcAnalyser.TcConfig{Interface: "eth0"},
+	cnf, err := LoadConfig("obzevConf.yaml")
+	config := &latency.TcpConfig{
+		ReqDelay: cnf.Delays.ReqDelay,
+		ResDelay: cnf.Delays.ResDelay,
+		Server:   cnf.Server.Port,
+		Client:   cnf.Client.Port,
 	}
-	// req := &latency.RequestForTcp{Config: &la}
+	println(
+		config.Client,
+		config.Server,
+		config.ResDelay,
+		config.ReqDelay,
+	)
+
+	// req2 := &tcAnalyser.RequestForUserSpace{
+	// 	Config: &tcAnalyser.TcConfig{Interface: "eth0"},
+	// }
+	req := &latency.RequestForTcp{Config: config}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	res, err := t.StartUserSpace(ctx, req2)
+	res, err := c.StartTcpServer(ctx, req)
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}

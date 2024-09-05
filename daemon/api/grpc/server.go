@@ -10,6 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var (
@@ -33,7 +34,7 @@ func main() {
 			),
 		),
 	)
-
+	reflection.Register(grpcServer)
 	serviceAgent(grpcServer, rpcLogger)
 
 	go waitForMetrics()
