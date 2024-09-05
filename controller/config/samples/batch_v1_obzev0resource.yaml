@@ -11,14 +11,14 @@ spec:
     reqDelay: 1 
     resDelay: 1 
     server: "7070"
-    client: "10.244.2.4:8080"
+    client: "my-express-app-service.default.svc.cluster.local:8080"
   tcAnalyserSvcConfig:
     enabled: false
     netIFace: "eth0"
   packetManipulationSvcConfig:
-    enabled: true 
+    enabled: false 
     server: "9091"
-    client: "10.244.2.4:8080"
+    client: "my-express-app-service.default.svc.cluster.local:8080"
     dropRate: "0.8"
     corruptRate: "0.4"
     durationSeconds: 8 
