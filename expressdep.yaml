@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: my-express-app
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: my-express-app
+  template:
+    metadata:
+      labels:
+        app: my-express-app
+    spec:
+      containers:
+      - name: my-express
+        image: lumbrjx/my-express:latest
+        ports:
+        - containerPort: 8080

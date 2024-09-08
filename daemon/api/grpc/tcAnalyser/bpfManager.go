@@ -24,12 +24,12 @@ type Event struct {
 	TcpFlags  uint8
 }
 
-func bpfLoader(interf string) {
+func bpfLoader(interf string) error {
 	ifaceName := interf
 
 	spec, err := loadBpfSpec("tc.o")
 	if err != nil {
-		log.Fatalf("loading eBPF spec: %v", err)
+		return fmt.Errorf("loading eBPF spec: %w", err)
 	}
 
 	var objs struct {
@@ -38,7 +38,7 @@ func bpfLoader(interf string) {
 		Events    *ebpf.Map     `ebpf:"events"`
 	}
 	if err := spec.LoadAndAssign(&objs, nil); err != nil {
-		log.Fatalf("loading objects: %v", err)
+		return fmt.Errorf("loading eBPF objects: %w", err)
 	}
 	defer objs.TcIngress.Close()
 	defer objs.TcEgress.Close()
@@ -46,13 +46,13 @@ func bpfLoader(interf string) {
 
 	link, err := netlink.LinkByName(ifaceName)
 	if err != nil {
-		log.Fatalf("getting interface: %v", err)
+		return fmt.Errorf("getting interface: %w", err)
 	}
 
 	// Ensure clsact qdisc exists
 	qdiscs, err := netlink.QdiscList(link)
 	if err != nil {
-		log.Fatalf("listing qdiscs: %v", err)
+		return fmt.Errorf("listing qdiscs: %w", err)
 	}
 	clsactExists := false
 	for _, qdisc := range qdiscs {
@@ -72,7 +72,7 @@ func bpfLoader(interf string) {
 			QdiscType: "clsact",
 		}
 		if err := netlink.QdiscAdd(qdisc); err != nil {
-			log.Fatalf("adding clsact qdisc: %v", err)
+			return fmt.Errorf("adding clsact qdisc: %w", err)
 		}
 		fmt.Println("Added clsact qdisc")
 	} else {
@@ -91,7 +91,7 @@ func bpfLoader(interf string) {
 		DirectAction: true,
 	}
 	if err := netlink.FilterAdd(ingressFilter); err != nil {
-		log.Fatalf("adding ingress filter: %v", err)
+		return fmt.Errorf("adding ingress filter: %w", err)
 	}
 	fmt.Println("Added ingress filter")
 
@@ -107,14 +107,14 @@ func bpfLoader(interf string) {
 		DirectAction: true,
 	}
 	if err := netlink.FilterAdd(egressFilter); err != nil {
-		log.Fatalf("adding egress filter: %v", err)
+		return fmt.Errorf("adding egress filter: %w", err)
 	}
 	fmt.Println("Added egress filter")
 
 	// perf reader
 	reader, err := perf.NewReader(objs.Events, os.Getpagesize())
 	if err != nil {
-		log.Fatalf("creating perf reader: %v", err)
+		return fmt.Errorf("creating perf reader: %w", err)
 	}
 	defer reader.Close()
 
@@ -126,7 +126,7 @@ func bpfLoader(interf string) {
 				if err == perf.ErrClosed {
 					return
 				}
-				log.Printf("reading from perf event reader: %s", err)
+				log.Printf("reading from perf event reader: %v", err)
 				continue
 			}
 
@@ -140,11 +140,10 @@ func bpfLoader(interf string) {
 
 			var event Event
 			if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.LittleEndian, &event); err != nil {
-				log.Printf("parsing perf event: %s", err)
+				log.Printf("parsing perf event: %v", err)
 				continue
 			}
 			printPacket(event)
-
 		}
 	}()
 
@@ -196,7 +195,8 @@ func bpfLoader(interf string) {
 		QdiscType: "clsact",
 	}
 	if err := netlink.QdiscDel(qdisc); err != nil {
-		log.Fatalf("deleting clsact qdisc: %v", err)
+		return fmt.Errorf("deleting clsact qdisc: %w", err)
 	}
 	fmt.Println("Deleted clsact qdisc")
+	return nil
 }

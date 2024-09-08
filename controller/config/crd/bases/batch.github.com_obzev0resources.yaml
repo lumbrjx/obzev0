@@ -44,22 +44,38 @@ spec:
                   to remove/update
                 properties:
                   client:
-                    description: TCP client address
                     type: string
+                  enabled:
+                    type: boolean
                   reqDelay:
-                    description: Delay in request handling
                     format: int32
                     type: integer
                   resDelay:
-                    description: Delay in response handling
                     format: int32
                     type: integer
                   server:
-                    description: TCP server address
+                    type: string
+                type: object
+              packetManipulationSvcConfig:
+                properties:
+                  client:
+                    type: string
+                  corruptRate:
+                    type: string
+                  dropRate:
+                    type: string
+                  durationSeconds:
+                    format: int32
+                    type: integer
+                  enabled:
+                    type: boolean
+                  server:
                     type: string
                 type: object
               tcAnalyserSvcConfig:
                 properties:
+                  enabled:
+                    type: boolean
                   netIFace:
                     type: string
                 type: object

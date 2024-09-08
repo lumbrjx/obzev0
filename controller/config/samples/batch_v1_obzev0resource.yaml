@@ -7,14 +7,21 @@ metadata:
   name: obzev0resource-sample
 spec:
   latencySvcConfig:
-    reqDelay: 0   
-    resDelay: 0  
-    server: "7090"  
-    client: "8080"  
+    enabled: true 
+    reqDelay: 1 
+    resDelay: 1 
+    server: "7070"
+    client: "my-express-app-service.default.svc.cluster.local:8080"
   tcAnalyserSvcConfig:
+    enabled: false
     netIFace: "eth0"
-
-
+  packetManipulationSvcConfig:
+    enabled: false 
+    server: "9091"
+    client: "my-express-app-service.default.svc.cluster.local:8080"
+    dropRate: "0.8"
+    corruptRate: "0.4"
+    durationSeconds: 8 
 status:
-  message: "Server started successfully"  
+  message: "Server started successfully"
 
