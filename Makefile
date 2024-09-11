@@ -10,6 +10,11 @@ MAIN_BRANCH = main
 
 all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus 
 
+
+package-chart: 
+	cd chart && helm package chart
+	helm repo index . --merge index.yaml
+
 dev-to-staging:
 	@git checkout $(STAGING_BRANCH)
 	@git merge $(DEV_BRANCH)
