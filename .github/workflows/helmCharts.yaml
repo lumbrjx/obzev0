@@ -22,13 +22,14 @@ jobs:
       with:
         version: v3.15.3  # Specify the Helm version you want to use
 
-    - name: Package Helm charts
+    - name: Package Helm chart
       run: |
-        for chart in charts/*; do
-          if [ -d "$chart" ]; then
-            helm package "$chart"
-          fi
-        done
+        if [ -f charts/Chart.yaml ]; then
+          helm package charts
+        else
+          echo "Chart.yaml not found in the charts directory"
+          exit 1
+        fi
 
     - name: Create or update index.yaml
       run: |
@@ -43,3 +44,4 @@ jobs:
         git add .
         git commit -m "Update Helm charts"
         git push
+
