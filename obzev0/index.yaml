@@ -1,0 +1,16 @@
+apiVersion: v1
+entries:
+  obzev0:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2024-09-11T16:35:06.888940694+01:00"
+    description: A Helm chart for deploying the Obzev0 application on Kubernetes.
+    digest: 19e82193abf7160117330da35333546b8bee5393731f7f290be91536ee3039f4
+    maintainers:
+    - name: Lumberjack
+    name: obzev0
+    type: application
+    urls:
+    - obzev0-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-09-11T16:35:06.887919102+01:00"
