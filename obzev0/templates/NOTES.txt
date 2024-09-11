@@ -1,0 +1,22 @@
+- Don't forget to run: 
+
+kubectl create clusterrolebinding permissive-binding \
+                --clusterrole=cluster-admin \
+                --serviceaccount=controller-system:controller-controller-manager 
+
+--------------------------------------------------------------------------------------
+
+- In case the control-plane doesn't have the right label run:
+
+kubectl label nodes <node-name> node-role.kubernetes.io/control-plane=""
+
+--------------------------------------------------------------------------------------
+
+- Don't forget to label the desired worker nodes by running:
+
+kubectl label <node-name> node-role.kubernetes.io/worker=""
+
+--------------------------------------------------------------------------------------
+
+Happy Testing :)
+

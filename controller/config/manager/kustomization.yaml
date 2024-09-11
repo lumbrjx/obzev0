@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: lumbrjx/obzev0-k8s-controller
-  newTag: temp11
+  newTag: latest
