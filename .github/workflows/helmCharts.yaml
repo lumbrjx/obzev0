@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: staging  # Checkout the branch where you want to make changes
 
     - name: Configure Git
       run: |
@@ -39,9 +41,9 @@ jobs:
           helm repo index . --merge index.yaml
         fi
 
-    - name: Push changes
+    - name: Commit and push changes
       run: |
         git add .
         git commit -m "Update Helm charts"
-        git push
+        git push origin staging  # Push changes to the 'staging' branch
 
