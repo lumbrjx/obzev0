@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: staging  # Checkout the branch where you want to make changes
+        ref: staging
 
     - name: Configure Git
       run: |
@@ -22,7 +22,7 @@ jobs:
     - name: Install Helm
       uses: azure/setup-helm@v1
       with:
-        version: v3.15.3  # Specify the Helm version you want to use
+        version: v3.15.3
 
     - name: Package Helm chart
       run: |
@@ -42,8 +42,10 @@ jobs:
         fi
 
     - name: Commit and push changes
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}  # Use the secret for authentication
       run: |
         git add .
         git commit -m "Update Helm charts"
-        git push origin staging  # Push changes to the 'staging' branch
+        git push https://x-access-token:${GH_PAT}@github.com/lumbrjx/obzev0.git staging
 
