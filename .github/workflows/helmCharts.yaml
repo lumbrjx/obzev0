@@ -1,0 +1,45 @@
+name: Publish Helm Chart
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [staging]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure Git
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Install Helm
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.15.3  # Specify the Helm version you want to use
+
+    - name: Package Helm charts
+      run: |
+        for chart in charts/*; do
+          if [ -d "$chart" ]; then
+            helm package "$chart"
+          fi
+        done
+
+    - name: Create or update index.yaml
+      run: |
+        if [ ! -f index.yaml ]; then
+          helm repo index .
+        else
+          helm repo index . --merge index.yaml
+        fi
+
+    - name: Push changes
+      run: |
+        git add .
+        git commit -m "Update Helm charts"
+        git push
