@@ -12,7 +12,7 @@ all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-for
 
 
 package-chart: 
-	cd chart && helm package chart
+	cd chart && helm package . 
 	helm repo index . --merge index.yaml
 
 dev-to-staging:
