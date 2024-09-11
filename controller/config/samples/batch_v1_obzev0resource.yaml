@@ -3,12 +3,12 @@ kind: Obzev0Resource
 metadata:
   labels:
     app.kubernetes.io/name: controller
-    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/managed-by: helm 
   name: obzev0resource-sample
 spec:
   latencySvcConfig:
     enabled: true 
-    reqDelay: 1 
+    reqDelay: 2 
     resDelay: 1 
     server: "7070"
     client: "my-express-app-service.default.svc.cluster.local:8080"

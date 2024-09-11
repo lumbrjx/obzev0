@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-clusterrolebinding
+  labels:
+    app.kubernetes.io/name: controller
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "1"
+spec:
+  activeDeadlineSeconds: 60  
+  template:
+    spec:
+      serviceAccountName: controller-controller-manager
+      containers:
+        - name: create-clusterrolebinding
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              kubectl create clusterrolebinding permissive-binding \
+                --clusterrole=cluster-admin \
+                --serviceaccount=controller-system:controller-controller-manager || echo "Failed to create the clusterrolebinding."
+      restartPolicy: OnFailure
+
