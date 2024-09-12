@@ -7,6 +7,15 @@ import (
 	"os"
 )
 
+func printHelp() {
+	fmt.Println(`Usage: obzev0 <command> [options]
+
+Commands:
+  init    Initialize the service
+  apply   Apply the configuration
+
+Run 'obzev0 help <command>' for more information on a specific command.`)
+}
 func readArgs() {
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'init' or 'apply' command")
@@ -14,6 +23,8 @@ func readArgs() {
 	}
 
 	switch os.Args[1] {
+	case "help":
+		printHelp()
 	case "init":
 		initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 		dist := initCmd.String(
@@ -51,7 +62,7 @@ func readArgs() {
 		apply(c)
 
 	default:
-		fmt.Println("expected 'init' or 'apply' command")
+		fmt.Println("expected 'init', 'apply' or 'help' command")
 		os.Exit(1)
 	}
 }
