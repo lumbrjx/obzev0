@@ -8,8 +8,11 @@ MAIN_BRANCH = main
 
 .PHONY: all generate-proto build-daemon
 
-all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus 
+all: create-cluster deploy-controller deploy-daemonset setup-prometheus setup-client port-forward-prometheus 
 
+setup-client:
+	kubectl apply -f expressdep.yaml
+	kubectl apply -f expresssvc.yaml
 
 build-cli:
 	cd cmd/cli && go build -o obzevMini *.go
