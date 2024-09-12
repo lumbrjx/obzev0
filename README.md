@@ -140,6 +140,16 @@ The chart folder already contains a Custom Resource and you still can define you
 kubectl apply -f path/to/CR/file
 ```
 
+### run locally with kind
+
+after clonning the repo you can run the following command and have everything done for you:
+
+```bash
+make all TAG=latest
+```
+it will use a simple dummy express server you can access it [here](https://github.com/lumbrjx/obzev0/blob/main/expressdep.yaml) and the [service](https://github.com/lumbrjx/obzev0/blob/main/expresssvc.yaml)
+
+
 ### obzevMini
 
 1. Launch the Daemon Docker container:
