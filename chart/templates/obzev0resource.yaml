@@ -1,0 +1,30 @@
+apiVersion: batch.github.com/v1
+kind: Obzev0Resource
+metadata:
+  labels:
+    app.kubernetes.io/name: controller
+    app.kubernetes.io/managed-by: helm 
+  name: obzev0resource-sample
+spec:
+  # Latency service configuration
+  latencySvcConfig:
+    enabled: true  # enable the service to run
+    reqDelay: 1  # Request Delay
+    resDelay: 1  # Response Delay
+    server: "7070" # TCP Proxy Port
+    client: "my-express-app-service.default.svc.cluster.local:8080" # Pod address to test on
+    # Traffic Control service configuration
+  tcAnalyserSvcConfig:
+    enabled: false # enable the service to run
+    netIFace: "eth0" # The interface to monitor on
+    # Packet manipulation service configuration
+  packetManipulationSvcConfig:
+    enabled: false # enable the service to run
+    server: "9091" # TCP Proxy Port
+    client: "my-express-app-service.default.svc.cluster.local:8080" # Pod Address to test on
+    dropRate: "0.8" # Packet drop rate
+    corruptRate: "0.4" # pakcet corruption rate
+    durationSeconds: 8 # test duration
+status:
+  message: "Server started successfully"
+

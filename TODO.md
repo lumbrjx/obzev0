@@ -12,5 +12,6 @@
 - [x] create packetManipulation k8s-controller call
 - [x] use reqSimulator for latency service
 - [x] add helm charts
-- [ ] create a CLI only version (obzevMini)
-- [ ] add kustomize
+- [x] create a CLI only version (obzevMini)
+- [ ] remove junk 
+- [ ] write docs
