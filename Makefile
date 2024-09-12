@@ -11,6 +11,9 @@ MAIN_BRANCH = main
 all: create-cluster deploy-controller deploy-daemonset setup-prometheus port-forward-prometheus 
 
 
+build-cli:
+	cd cmd/cli && go build -o obzevMini *.go
+
 package-chart: 
 	cd chart && helm package . 
 	helm repo index . --merge index.yaml

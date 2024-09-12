@@ -1,7 +1,0 @@
-delays:
-  reqDelay: 1
-  resDelay: 1 
-server:
-  port: "7090"
-client:
-  port: "127.0.0.1:8080"
