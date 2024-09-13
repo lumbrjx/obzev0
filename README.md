@@ -73,7 +73,7 @@ helm install obzev0 obzev0/obzev0
 
 Download the binary:
 ```bash
-curl -o obzevMini https://raw.githubusercontent.com/lumbrjx/obzev0/main/cmd/cli/obzevMini
+curl -o obzevMini https://raw.githubusercontent.com/lumbrjx/obzev0/main/cmd/cli/obzev0mini
 chmod +x obzevMini
 ```
 
