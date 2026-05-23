@@ -2,6 +2,7 @@ package tcanalyser
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
 	"log"
@@ -24,7 +25,9 @@ type Event struct {
 	TcpFlags  uint8
 }
 
-func bpfLoader(interf string) error {
+// bpfLoader attaches eBPF programs to interf and runs until ctx is cancelled
+// or a SIGTERM/SIGINT is received.
+func bpfLoader(interf string, ctx context.Context) error {
 	ifaceName := interf
 
 	spec, err := loadBpfSpec("tc.o")
@@ -149,11 +152,16 @@ func bpfLoader(interf string) error {
 
 	fmt.Printf("eBPF programs attached to interface %s\n", ifaceName)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
-	fmt.Println("Received interrupt, cleaning up...")
+	select {
+	case <-sigCh:
+		fmt.Println("Received OS signal, cleaning up...")
+	case <-ctx.Done():
+		fmt.Println("Context cancelled, cleaning up...")
+	}
+
 
 	// Clean up filters
 	filters, err := netlink.FilterList(link, netlink.HANDLE_MIN_INGRESS)

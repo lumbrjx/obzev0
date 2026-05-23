@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	TcAnalyserService_StartUserSpace_FullMethodName = "/tcAnalyserServ.TcAnalyserService/StartUserSpace"
+	TcAnalyserService_StopUserSpace_FullMethodName  = "/tcAnalyserServ.TcAnalyserService/StopUserSpace"
 )
 
 // TcAnalyserServiceClient is the client API for TcAnalyserService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TcAnalyserServiceClient interface {
 	StartUserSpace(ctx context.Context, in *RequestForUserSpace, opts ...grpc.CallOption) (*ResponseFromUserSpace, error)
+	StopUserSpace(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error)
 }
 
 type tcAnalyserServiceClient struct {
@@ -47,11 +49,22 @@ func (c *tcAnalyserServiceClient) StartUserSpace(ctx context.Context, in *Reques
 	return out, nil
 }
 
+func (c *tcAnalyserServiceClient) StopUserSpace(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StopResponse)
+	err := c.cc.Invoke(ctx, TcAnalyserService_StopUserSpace_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TcAnalyserServiceServer is the server API for TcAnalyserService service.
 // All implementations must embed UnimplementedTcAnalyserServiceServer
 // for forward compatibility.
 type TcAnalyserServiceServer interface {
 	StartUserSpace(context.Context, *RequestForUserSpace) (*ResponseFromUserSpace, error)
+	StopUserSpace(context.Context, *StopRequest) (*StopResponse, error)
 	mustEmbedUnimplementedTcAnalyserServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedTcAnalyserServiceServer struct{}
 
 func (UnimplementedTcAnalyserServiceServer) StartUserSpace(context.Context, *RequestForUserSpace) (*ResponseFromUserSpace, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartUserSpace not implemented")
+}
+func (UnimplementedTcAnalyserServiceServer) StopUserSpace(context.Context, *StopRequest) (*StopResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopUserSpace not implemented")
 }
 func (UnimplementedTcAnalyserServiceServer) mustEmbedUnimplementedTcAnalyserServiceServer() {}
 func (UnimplementedTcAnalyserServiceServer) testEmbeddedByValue()                           {}
@@ -104,6 +120,24 @@ func _TcAnalyserService_StartUserSpace_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TcAnalyserService_StopUserSpace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TcAnalyserServiceServer).StopUserSpace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TcAnalyserService_StopUserSpace_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TcAnalyserServiceServer).StopUserSpace(ctx, req.(*StopRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TcAnalyserService_ServiceDesc is the grpc.ServiceDesc for TcAnalyserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var TcAnalyserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartUserSpace",
 			Handler:    _TcAnalyserService_StartUserSpace_Handler,
+		},
+		{
+			MethodName: "StopUserSpace",
+			Handler:    _TcAnalyserService_StopUserSpace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

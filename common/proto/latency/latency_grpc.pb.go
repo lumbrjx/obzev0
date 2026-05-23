@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	LatencyService_StartTcpServer_FullMethodName = "/latencyServ.LatencyService/StartTcpServer"
+	LatencyService_StopTcpServer_FullMethodName  = "/latencyServ.LatencyService/StopTcpServer"
 )
 
 // LatencyServiceClient is the client API for LatencyService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LatencyServiceClient interface {
 	StartTcpServer(ctx context.Context, in *RequestForTcp, opts ...grpc.CallOption) (*ResponseFromTcp, error)
+	StopTcpServer(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error)
 }
 
 type latencyServiceClient struct {
@@ -47,11 +49,22 @@ func (c *latencyServiceClient) StartTcpServer(ctx context.Context, in *RequestFo
 	return out, nil
 }
 
+func (c *latencyServiceClient) StopTcpServer(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StopResponse)
+	err := c.cc.Invoke(ctx, LatencyService_StopTcpServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LatencyServiceServer is the server API for LatencyService service.
 // All implementations must embed UnimplementedLatencyServiceServer
 // for forward compatibility.
 type LatencyServiceServer interface {
 	StartTcpServer(context.Context, *RequestForTcp) (*ResponseFromTcp, error)
+	StopTcpServer(context.Context, *StopRequest) (*StopResponse, error)
 	mustEmbedUnimplementedLatencyServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedLatencyServiceServer struct{}
 
 func (UnimplementedLatencyServiceServer) StartTcpServer(context.Context, *RequestForTcp) (*ResponseFromTcp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartTcpServer not implemented")
+}
+func (UnimplementedLatencyServiceServer) StopTcpServer(context.Context, *StopRequest) (*StopResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopTcpServer not implemented")
 }
 func (UnimplementedLatencyServiceServer) mustEmbedUnimplementedLatencyServiceServer() {}
 func (UnimplementedLatencyServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +120,24 @@ func _LatencyService_StartTcpServer_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LatencyService_StopTcpServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LatencyServiceServer).StopTcpServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LatencyService_StopTcpServer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LatencyServiceServer).StopTcpServer(ctx, req.(*StopRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LatencyService_ServiceDesc is the grpc.ServiceDesc for LatencyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var LatencyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartTcpServer",
 			Handler:    _LatencyService_StartTcpServer_Handler,
+		},
+		{
+			MethodName: "StopTcpServer",
+			Handler:    _LatencyService_StopTcpServer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

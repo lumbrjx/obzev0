@@ -13,6 +13,7 @@ func printHelp() {
 Commands:
   init    Initialize the service
   apply   Apply the configuration
+  tui     Launch interactive terminal UI (obzevMini)
 
 Run 'obzev0 help <command>' for more information on a specific command.`)
 }
@@ -61,8 +62,13 @@ func readArgs() {
 		}
 		apply(c)
 
+	case "tui":
+		if err := runTUI(); err != nil {
+			log.Fatalf("TUI error: %v", err)
+		}
+
 	default:
-		fmt.Println("expected 'init', 'apply' or 'help' command")
+		fmt.Println("expected 'init', 'apply', 'tui' or 'help' command")
 		os.Exit(1)
 	}
 }

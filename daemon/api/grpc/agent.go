@@ -2,9 +2,13 @@ package main
 
 import (
 	ltc "obzev0/common/proto/latency"
+	netchaoproto "obzev0/common/proto/networkChaos"
+	httpfaultproto "obzev0/common/proto/httpFault"
 	"obzev0/common/proto/packetManipulation"
 	tcanl "obzev0/common/proto/tcAnalyser"
+	httpfault "obzev0/daemon/api/grpc/httpFault"
 	"obzev0/daemon/api/grpc/latency"
+	networkchaos "obzev0/daemon/api/grpc/networkChaos"
 	packetmanipulation "obzev0/daemon/api/grpc/packetManipulation"
 	tcanalyser "obzev0/daemon/api/grpc/tcAnalyser"
 
@@ -27,7 +31,15 @@ func serviceAgent(grpcServer *grpc.Server, rpcLogger *logrus.Entry) {
 	pct := packetmanipulation.PacketManipulationService{}
 	packetManipulation.RegisterPacketManipulationServiceServer(grpcServer, &pct)
 
-	// Health Checking Serivce
+	// Network Chaos Service (bandwidth, DNS, TCP RST)
+	nc := networkchaos.NetworkChaosService{}
+	netchaoproto.RegisterNetworkChaosServiceServer(grpcServer, &nc)
+
+	// HTTP Fault Injection Service
+	hf := httpfault.HTTPFaultService{}
+	httpfaultproto.RegisterHTTPFaultServiceServer(grpcServer, &hf)
+
+	// Health Checking Service
 	healthSrv := health.NewServer()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
 

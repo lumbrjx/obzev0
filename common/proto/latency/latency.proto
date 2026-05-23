@@ -6,6 +6,7 @@ import "validate/validate.proto";
 
 service LatencyService {
     rpc StartTcpServer(RequestForTcp) returns (ResponseFromTcp) {};
+    rpc StopTcpServer(StopRequest) returns (StopResponse) {};
 }
 
 message TcpConfig {
@@ -20,6 +21,14 @@ message RequestForTcp {
 }
 
 message ResponseFromTcp {
+    string message = 1;
+}
+
+message StopRequest {
+    string reason = 1;
+}
+
+message StopResponse {
     string message = 1;
 }
 

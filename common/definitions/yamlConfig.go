@@ -1,5 +1,28 @@
 package definitions
 
+// Internal config types used by the latency daemon service.
+
+type DelaysConfig struct {
+	ReqDelay int32
+	ResDelay int32
+}
+
+type ServerConfig struct {
+	Port string
+}
+
+type ClientConfig struct {
+	Port string
+}
+
+// LatencyInternalConfig is used by LaunchTcp inside the daemon; it is separate
+// from the YAML-facing LatencySvcConfig to avoid coupling the daemon to the CLI schema.
+type LatencyInternalConfig struct {
+	Delays DelaysConfig
+	Server ServerConfig
+	Client ClientConfig
+}
+
 type LatencySvcConfig struct {
 	Enabled  bool   `yaml:"enabled"`
 	ReqDelay int    `yaml:"reqDelay"`

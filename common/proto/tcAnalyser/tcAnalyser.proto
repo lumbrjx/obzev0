@@ -6,6 +6,7 @@ import "validate/validate.proto";
 
 service TcAnalyserService {
   rpc StartUserSpace(RequestForUserSpace) returns (ResponseFromUserSpace) {};
+  rpc StopUserSpace(StopRequest) returns (StopResponse) {};
 }
 
 message TcConfig {
@@ -15,3 +16,7 @@ message TcConfig {
 message RequestForUserSpace { TcConfig config = 1; }
 
 message ResponseFromUserSpace { string message = 1; }
+
+message StopRequest { string reason = 1; }
+
+message StopResponse { string message = 1; }

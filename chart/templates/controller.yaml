@@ -267,7 +267,8 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: lumbrjx/obzev0-k8s-controller:latest
+        image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+        imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
         livenessProbe:
           httpGet:
             path: /healthz
