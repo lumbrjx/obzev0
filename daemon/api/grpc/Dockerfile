@@ -6,7 +6,7 @@ RUN apt-get update && \
     clang \
     llvm \
     libelf-dev \
-    linux-headers-$(uname -r) \
+    linux-headers-amd64 \
     build-essential \
     iproute2 \
     libbpf-dev \

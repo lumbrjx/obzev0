@@ -8,6 +8,8 @@ import (
 	"time"
 
 	pb "obzev0/common/proto/latency"
+	httpfaultproto "obzev0/common/proto/httpFault"
+	netchaoproto "obzev0/common/proto/networkChaos"
 	pca "obzev0/common/proto/packetManipulation"
 	tca "obzev0/common/proto/tcAnalyser"
 	v "obzev0/controller/api/v1"
@@ -16,11 +18,11 @@ import (
 )
 
 type GrpcServiceConfig struct {
-	LatencyConfig v.TcpConfig
-	TcAConfig     v.TcAnalyserConfig
-	PctmConfig    v.PacketManipulationConfig
-
-	// Add more fields as needed
+	LatencyConfig    v.TcpConfig
+	TcAConfig        v.TcAnalyserConfig
+	PctmConfig       v.PacketManipulationConfig
+	NetworkChaosConf v.NetworkChaosConfig
+	HTTPFaultConf    v.HTTPFaultConfig
 }
 
 func callGrpcServices(
@@ -96,6 +98,66 @@ func callGrpcServices(
 			"Response from packetManipulationService gRPC server: %s\n",
 			d.Message,
 		)
+	}
+
+	if config.NetworkChaosConf.Enabled {
+		ncClient := netchaoproto.NewNetworkChaosServiceClient(conn)
+
+		if config.NetworkChaosConf.BandwidthRateKbps > 0 {
+			resp, err := ncClient.StartBandwidthLimit(ctx, &netchaoproto.BandwidthRequest{
+				Interface: config.NetworkChaosConf.Interface,
+				RateKbps:  config.NetworkChaosConf.BandwidthRateKbps,
+				BurstKb:   uint32(config.NetworkChaosConf.BandwidthRateKbps / 8),
+			})
+			if err != nil {
+				log.Printf("Error calling StartBandwidthLimit: %v", err)
+			} else {
+				fmt.Printf("Response from NetworkChaosService (bandwidth): %s\n", resp.Message)
+			}
+		}
+
+		if config.NetworkChaosConf.DNSChaosMode != "" {
+			resp, err := ncClient.StartDNSChaos(ctx, &netchaoproto.DNSChaosRequest{
+				Mode:       config.NetworkChaosConf.DNSChaosMode,
+				DelayMs:    config.NetworkChaosConf.DNSDelayMs,
+				ListenAddr: config.NetworkChaosConf.DNSListenAddr,
+				Upstream:   config.NetworkChaosConf.DNSUpstream,
+			})
+			if err != nil {
+				log.Printf("Error calling StartDNSChaos: %v", err)
+			} else {
+				fmt.Printf("Response from NetworkChaosService (DNS): %s\n", resp.Message)
+			}
+		}
+
+		if config.NetworkChaosConf.TCPResetListenAddr != "" {
+			resp, err := ncClient.StartTCPReset(ctx, &netchaoproto.TCPResetRequest{
+				ListenAddr: config.NetworkChaosConf.TCPResetListenAddr,
+				ResetRate:  config.NetworkChaosConf.TCPResetRate,
+			})
+			if err != nil {
+				log.Printf("Error calling StartTCPReset: %v", err)
+			} else {
+				fmt.Printf("Response from NetworkChaosService (TCP RST): %s\n", resp.Message)
+			}
+		}
+	}
+
+	if config.HTTPFaultConf.Enabled {
+		hfClient := httpfaultproto.NewHTTPFaultServiceClient(conn)
+		resp, err := hfClient.StartHTTPFault(ctx, &httpfaultproto.HTTPFaultRequest{
+			ListenAddr: config.HTTPFaultConf.ListenAddr,
+			TargetUrl:  config.HTTPFaultConf.TargetURL,
+			ErrorRate:  config.HTTPFaultConf.ErrorRate,
+			ErrorCode:  config.HTTPFaultConf.ErrorCode,
+			DelayMs:    config.HTTPFaultConf.DelayMs,
+			AbortRate:  config.HTTPFaultConf.AbortRate,
+		})
+		if err != nil {
+			log.Printf("Error calling StartHTTPFault: %v", err)
+		} else {
+			fmt.Printf("Response from HTTPFaultService: %s\n", resp.Message)
+		}
 	}
 
 	return nil

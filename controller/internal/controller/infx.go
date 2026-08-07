@@ -13,7 +13,9 @@ import (
 	"time"
 
 	v1 "obzev0/controller/api/v1"
+	httpfaultproto "obzev0/common/proto/httpFault"
 	latencyproto "obzev0/common/proto/latency"
+	netchaoproto "obzev0/common/proto/networkChaos"
 	pcaproto "obzev0/common/proto/packetManipulation"
 	tcaproto "obzev0/common/proto/tcAnalyser"
 
@@ -120,9 +122,11 @@ func processCustomResource(cr *v1.Obzev0Resource, targets []*PodConnection) {
 
 	// Flat (legacy) single-shot mode.
 	cfg := GrpcServiceConfig{
-		LatencyConfig: cr.Spec.LatencyServiceConfig,
-		TcAConfig:     cr.Spec.TcAnalyserServiceConfig,
-		PctmConfig:    cr.Spec.PacketManipulationServiceConfig,
+		LatencyConfig:    cr.Spec.LatencyServiceConfig,
+		TcAConfig:        cr.Spec.TcAnalyserServiceConfig,
+		PctmConfig:       cr.Spec.PacketManipulationServiceConfig,
+		NetworkChaosConf: cr.Spec.NetworkChaosConfig,
+		HTTPFaultConf:    cr.Spec.HTTPFaultConfig,
 	}
 	startTime := time.Now()
 	for _, pc := range targets {
@@ -150,9 +154,11 @@ func executeWorkflow(cr *v1.Obzev0Resource, conns []*PodConnection, policy v1.Ro
 			"Step %d/%d: %s", i+1, len(steps), step.Name)
 
 		cfg := GrpcServiceConfig{
-			LatencyConfig: step.LatencyServiceConfig,
-			TcAConfig:     step.TcAnalyserServiceConfig,
-			PctmConfig:    step.PacketManipulationServiceConfig,
+			LatencyConfig:    step.LatencyServiceConfig,
+			TcAConfig:        step.TcAnalyserServiceConfig,
+			PctmConfig:       step.PacketManipulationServiceConfig,
+			NetworkChaosConf: step.NetworkChaosConfig,
+			HTTPFaultConf:    step.HTTPFaultConfig,
 		}
 
 		for _, pc := range conns {
@@ -198,9 +204,11 @@ func scheduleExperiment(cr *v1.Obzev0Resource, conns []*PodConnection) {
 			executeWorkflow(cr, conns, cr.Spec.RollbackPolicy)
 		} else {
 			cfg := GrpcServiceConfig{
-				LatencyConfig: cr.Spec.LatencyServiceConfig,
-				TcAConfig:     cr.Spec.TcAnalyserServiceConfig,
-				PctmConfig:    cr.Spec.PacketManipulationServiceConfig,
+				LatencyConfig:    cr.Spec.LatencyServiceConfig,
+				TcAConfig:        cr.Spec.TcAnalyserServiceConfig,
+				PctmConfig:       cr.Spec.PacketManipulationServiceConfig,
+				NetworkChaosConf: cr.Spec.NetworkChaosConfig,
+				HTTPFaultConf:    cr.Spec.HTTPFaultConfig,
 			}
 			startTime := time.Now()
 			for _, pc := range conns {
@@ -364,6 +372,30 @@ func stopExperiments(cr *v1.Obzev0Resource, conns []*PodConnection, cfg GrpcServ
 			client := pcaproto.NewPacketManipulationServiceClient(pc.Conn)
 			if _, err := client.StopManipulationProxy(ctx, &pcaproto.StopRequest{Reason: reason}); err != nil {
 				log.Printf("StopManipulationProxy error on %s: %v", pc.PodName, err)
+			}
+		}
+		if cfg.NetworkChaosConf.Enabled {
+			ncClient := netchaoproto.NewNetworkChaosServiceClient(pc.Conn)
+			if cfg.NetworkChaosConf.BandwidthRateKbps > 0 {
+				if _, err := ncClient.StopBandwidthLimit(ctx, &netchaoproto.StopRequest{Reason: reason}); err != nil {
+					log.Printf("StopBandwidthLimit error on %s: %v", pc.PodName, err)
+				}
+			}
+			if cfg.NetworkChaosConf.DNSChaosMode != "" {
+				if _, err := ncClient.StopDNSChaos(ctx, &netchaoproto.StopRequest{Reason: reason}); err != nil {
+					log.Printf("StopDNSChaos error on %s: %v", pc.PodName, err)
+				}
+			}
+			if cfg.NetworkChaosConf.TCPResetListenAddr != "" {
+				if _, err := ncClient.StopTCPReset(ctx, &netchaoproto.StopRequest{Reason: reason}); err != nil {
+					log.Printf("StopTCPReset error on %s: %v", pc.PodName, err)
+				}
+			}
+		}
+		if cfg.HTTPFaultConf.Enabled {
+			hfClient := httpfaultproto.NewHTTPFaultServiceClient(pc.Conn)
+			if _, err := hfClient.StopHTTPFault(ctx, &httpfaultproto.StopRequest{Reason: reason}); err != nil {
+				log.Printf("StopHTTPFault error on %s: %v", pc.PodName, err)
 			}
 		}
 	}
