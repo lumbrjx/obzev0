@@ -5,7 +5,6 @@ import (
 	"fmt"
 	v1 "obzev0/controller/api/v1"
 	"os"
-	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -16,12 +15,32 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var setupLog = ctrl.Log.WithName("setup")
 
-func SetupInformers(mgr ctrl.Manager) {
+// Package-level singletons set once in SetupInformers and used by infx.go.
+var (
+	eventRecorder record.EventRecorder
+	ctrlClient    client.Client
+)
+
+// PodConnection pairs a gRPC connection with the metadata needed for blast-radius filtering.
+type PodConnection struct {
+	Conn      *grpc.ClientConn
+	PodName   string
+	Namespace string
+	Labels    map[string]string
+	NodeName  string
+}
+
+func SetupInformers(mgr ctrl.Manager, recorder record.EventRecorder, c client.Client) {
+	eventRecorder = recorder
+	ctrlClient = c
+
 	clientset, err := kubernetes.NewForConfig(mgr.GetConfig())
 	if err != nil {
 		setupLog.Error(err, "unable to create clientset")
@@ -31,7 +50,6 @@ func SetupInformers(mgr ctrl.Manager) {
 	setupLog.Info("Setting up informers")
 	ctx := context.Background()
 
-	// Set up CR informer
 	crInformer, err := mgr.GetCache().GetInformer(ctx, &v1.Obzev0Resource{})
 	if err != nil {
 		setupLog.Error(err, "unable to create CR informer")
@@ -39,7 +57,6 @@ func SetupInformers(mgr ctrl.Manager) {
 	}
 	setupLog.Info("CR informer created")
 
-	// Set up DaemonSet informer
 	daemonSetInformer, err := mgr.GetCache().GetInformer(ctx, &appsv1.DaemonSet{})
 	if err != nil {
 		setupLog.Error(err, "unable to create DaemonSet informer")
@@ -47,7 +64,6 @@ func SetupInformers(mgr ctrl.Manager) {
 	}
 	setupLog.Info("DaemonSet informer created")
 
-	// Set up Pod informer
 	podInformer, err := mgr.GetCache().GetInformer(ctx, &corev1.Pod{})
 	if err != nil {
 		setupLog.Error(err, "unable to create Pod informer")
@@ -55,10 +71,8 @@ func SetupInformers(mgr ctrl.Manager) {
 	}
 	setupLog.Info("Pod informer created")
 
-	// Create a map to store gRPC connections
-	gRPCConnections := make(map[string]*grpc.ClientConn)
+	gRPCConnections := make(map[string]*PodConnection)
 
-	// Set up DaemonSet event handler
 	daemonSetInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			ds := obj.(*appsv1.DaemonSet)
@@ -78,13 +92,11 @@ func SetupInformers(mgr ctrl.Manager) {
 			ds := obj.(*appsv1.DaemonSet)
 			if isTargetDaemonSet(ds) {
 				setupLog.Info("Target DaemonSet deleted", "name", ds.Name)
-				// Clean up connections for deleted DaemonSet
 				cleanupConnections(ds, gRPCConnections)
 			}
 		},
 	})
 
-	// Set up Pod event handler
 	podInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			pod := obj.(*corev1.Pod)
@@ -104,17 +116,15 @@ func SetupInformers(mgr ctrl.Manager) {
 			pod := obj.(*corev1.Pod)
 			if isTargetPod(pod) {
 				setupLog.Info("Target Pod deleted", "name", pod.Name)
-				// Clean up connection for deleted Pod
 				deleteConnection(pod.Status.PodIP, gRPCConnections)
 			}
 		},
 	})
 
-	// Set up CR event handler
 	crInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    func(obj interface{}) { handleCREvent(obj, gRPCConnections) },
 		UpdateFunc: func(oldObj, newObj interface{}) { handleCREvent(newObj, gRPCConnections) },
-		DeleteFunc: func(obj interface{}) { handleCREvent(obj, gRPCConnections) },
+		DeleteFunc: func(obj interface{}) { handleCRDelete(obj, gRPCConnections) },
 	})
 }
 
@@ -129,22 +139,16 @@ func isTargetPod(pod *corev1.Pod) bool {
 func retryConnectToPods(
 	clientset *kubernetes.Clientset,
 	ds *appsv1.DaemonSet,
-	connections map[string]*grpc.ClientConn,
+	connections map[string]*PodConnection,
 ) {
 	for {
 		pods, err := clientset.CoreV1().
 			Pods(ds.Namespace).
 			List(context.TODO(), metav1.ListOptions{
-				LabelSelector: labels.SelectorFromSet(ds.Spec.Selector.MatchLabels).
-					String(),
+				LabelSelector: labels.SelectorFromSet(ds.Spec.Selector.MatchLabels).String(),
 			})
 		if err != nil {
-			setupLog.Error(
-				err,
-				"Failed to list pods for DaemonSet",
-				"name",
-				ds.Name,
-			)
+			setupLog.Error(err, "Failed to list pods for DaemonSet", "name", ds.Name)
 			time.Sleep(5 * time.Second)
 			continue
 		}
@@ -155,18 +159,17 @@ func retryConnectToPods(
 			}
 		}
 
-		time.Sleep(30 * time.Second) // Wait before checking again
+		time.Sleep(30 * time.Second)
 	}
 }
 
-func retryConnectToPod(pod *corev1.Pod, connections map[string]*grpc.ClientConn) {
+func retryConnectToPod(pod *corev1.Pod, connections map[string]*PodConnection) {
 	ip := pod.Status.PodIP
-	port := "50051"
-	address := fmt.Sprintf("%s:%s", ip, port)
+	address := fmt.Sprintf("%s:50051", ip)
 
 	for {
 		if _, exists := connections[address]; exists {
-			return // Connection already exists
+			return
 		}
 
 		setupLog.Info("Attempting to connect to gRPC server", "address", address)
@@ -176,59 +179,65 @@ func retryConnectToPod(pod *corev1.Pod, connections map[string]*grpc.ClientConn)
 			grpc.WithChainUnaryInterceptor(LoggingInterceptor),
 		)
 		if err != nil {
-			setupLog.Error(
-				err,
-				"Failed to connect to gRPC server",
-				"address",
-				address,
-			)
+			setupLog.Error(err, "Failed to connect to gRPC server", "address", address)
 			time.Sleep(5 * time.Second)
 			continue
 		}
 
-		connections[address] = conn
+		connections[address] = &PodConnection{
+			Conn:      conn,
+			PodName:   pod.Name,
+			Namespace: pod.Namespace,
+			Labels:    pod.Labels,
+			NodeName:  pod.Spec.NodeName,
+		}
 		setupLog.Info("Successfully connected to gRPC server", "address", address)
 		return
 	}
 }
 
-func cleanupConnections(
-	ds *appsv1.DaemonSet,
-	connections map[string]*grpc.ClientConn,
-) {
-	for address, conn := range connections {
-		// Check if this connection belongs to the deleted DaemonSet
-		// This is a simplification; you might need a more robust way to associate connections with DaemonSets
-		if strings.HasPrefix(address, ds.Name) {
-			conn.Close()
+func cleanupConnections(ds *appsv1.DaemonSet, connections map[string]*PodConnection) {
+	for address, pc := range connections {
+		if pc.Namespace == ds.Namespace {
+			pc.Conn.Close()
 			delete(connections, address)
-			setupLog.Info(
-				"Cleaned up connection for deleted DaemonSet",
-				"address",
-				address,
-			)
+			setupLog.Info("Cleaned up connection for deleted DaemonSet", "address", address)
 		}
 	}
 }
 
-func deleteConnection(podIP string, connections map[string]*grpc.ClientConn) {
+func deleteConnection(podIP string, connections map[string]*PodConnection) {
 	address := fmt.Sprintf("%s:50051", podIP)
-	if conn, exists := connections[address]; exists {
-		conn.Close()
+	if pc, exists := connections[address]; exists {
+		pc.Conn.Close()
 		delete(connections, address)
 		setupLog.Info("Cleaned up connection for deleted Pod", "address", address)
 	}
 }
 
-func handleCREvent(obj interface{}, connections map[string]*grpc.ClientConn) {
+func handleCREvent(obj interface{}, connections map[string]*PodConnection) {
 	cr, ok := obj.(*v1.Obzev0Resource)
 	if !ok {
 		setupLog.Error(nil, "Failed to cast object to Obzev0Resource")
 		return
 	}
 
-	for _, conn := range connections {
-		CheckConnection(conn)
-		processCustomResource(cr, conn)
+	targets := filterConnections(connections, cr.Spec.BlastRadius)
+	setupLog.Info("Dispatching chaos experiment",
+		"cr", cr.Name,
+		"totalPods", len(connections),
+		"targetedPods", len(targets),
+	)
+
+	go processCustomResource(cr, targets)
+}
+
+func handleCRDelete(obj interface{}, connections map[string]*PodConnection) {
+	cr, ok := obj.(*v1.Obzev0Resource)
+	if !ok {
+		setupLog.Error(nil, "Failed to cast object to Obzev0Resource on delete")
+		return
 	}
+	stopScheduler(cr.Namespace + "/" + cr.Name)
+	setupLog.Info("Custom Resource deleted", "name", cr.Name, "namespace", cr.Namespace)
 }

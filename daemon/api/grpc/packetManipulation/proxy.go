@@ -28,7 +28,8 @@ type ProxyConfig struct {
 	Timeout     time.Duration
 }
 
-func Proxy(conf ProxyConfig) error {
+// Proxy runs until the provided context is cancelled or conf.Timeout expires.
+func Proxy(conf ProxyConfig, extCtx context.Context) error {
 	listener, err := net.Listen("tcp", ":"+conf.Server)
 	if err != nil {
 		fmt.Println("Error starting TCP server:", err)
@@ -40,10 +41,8 @@ func Proxy(conf ProxyConfig) error {
 
 	var wg sync.WaitGroup
 
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		conf.Timeout*time.Second,
-	)
+	// Honour both the external cancel and the configured timeout.
+	ctx, cancel := context.WithTimeout(extCtx, conf.Timeout)
 	defer cancel()
 
 	go func() {

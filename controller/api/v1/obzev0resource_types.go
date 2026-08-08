@@ -47,21 +47,92 @@ type PacketManipulationConfig struct {
 	CorruptRate     string `json:"corruptRate,omitempty"`
 }
 
-// Obzev0ResourceSpec defines the desired state of Obzev0Resource
-type Obzev0ResourceSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+// BlastRadius limits which daemon pods receive the chaos experiment.
+// Empty fields mean "all" (no filtering applied for that dimension).
+type BlastRadius struct {
+	// Namespaces restricts chaos to pods running in these namespaces.
+	Namespaces []string `json:"namespaces,omitempty"`
+	// LabelSelector restricts chaos to pods whose labels match all key/value pairs.
+	LabelSelector map[string]string `json:"labelSelector,omitempty"`
+	// Percentage is the fraction of matching nodes to target (1-100). 0 means all.
+	Percentage int32 `json:"percentage,omitempty"`
+}
 
-	// Foo is an example field of Obzev0Resource. Edit obzev0resource_types.go to remove/update
+// RollbackPolicy defines conditions under which a running experiment is automatically stopped.
+type RollbackPolicy struct {
+	// MaxDurationSeconds stops the experiment after this many seconds. 0 = no limit.
+	MaxDurationSeconds int32 `json:"maxDurationSeconds,omitempty"`
+	// PrometheusURL is the base URL of a Prometheus instance (e.g. http://prometheus:9090).
+	PrometheusURL string `json:"prometheusURL,omitempty"`
+	// MetricQuery is a PromQL instant query. If its scalar result exceeds Threshold the experiment stops.
+	MetricQuery string `json:"metricQuery,omitempty"`
+	// Threshold is the metric value that triggers rollback.
+	Threshold float64 `json:"threshold,omitempty"`
+	// PollIntervalSeconds controls how often the metric is checked. Defaults to 10.
+	PollIntervalSeconds int32 `json:"pollIntervalSeconds,omitempty"`
+}
+
+// NetworkChaosConfig configures bandwidth throttling, DNS failure injection, or TCP RST injection.
+type NetworkChaosConfig struct {
+	Enabled bool `json:"enabled,omitempty"`
+	// Bandwidth throttling
+	BandwidthRateKbps uint64 `json:"bandwidthRateKbps,omitempty"`
+	Interface         string `json:"interface,omitempty"`
+	// DNS chaos: mode is "nxdomain", "servfail", or "delay"
+	DNSChaosMode  string `json:"dnsChaosMode,omitempty"`
+	DNSDelayMs    int32  `json:"dnsDelayMs,omitempty"`
+	DNSListenAddr string `json:"dnsListenAddr,omitempty"`
+	DNSUpstream   string `json:"dnsUpstream,omitempty"`
+	// TCP RST injection
+	TCPResetListenAddr string  `json:"tcpResetListenAddr,omitempty"`
+	TCPResetRate       float32 `json:"tcpResetRate,omitempty"`
+}
+
+// HTTPFaultConfig configures an HTTP fault-injection reverse proxy.
+type HTTPFaultConfig struct {
+	Enabled    bool    `json:"enabled,omitempty"`
+	ListenAddr string  `json:"listenAddr,omitempty"`
+	TargetURL  string  `json:"targetURL,omitempty"`
+	ErrorRate  float32 `json:"errorRate,omitempty"`
+	ErrorCode  int32   `json:"errorCode,omitempty"`
+	DelayMs    int32   `json:"delayMs,omitempty"`
+	AbortRate  float32 `json:"abortRate,omitempty"`
+}
+
+// ExperimentStep is a single phase inside a multi-step workflow.
+type ExperimentStep struct {
+	// Name is a human-readable label for this step.
+	Name string `json:"name"`
+	// DurationSeconds is how long this step runs before the next one starts. 0 = fire-and-forget.
+	DurationSeconds                 int32                    `json:"durationSeconds,omitempty"`
 	LatencyServiceConfig            TcpConfig                `json:"latencySvcConfig,omitempty"`
 	TcAnalyserServiceConfig         TcAnalyserConfig         `json:"tcAnalyserSvcConfig,omitempty"`
 	PacketManipulationServiceConfig PacketManipulationConfig `json:"packetManipulationSvcConfig,omitempty"`
+	NetworkChaosConfig              NetworkChaosConfig       `json:"networkChaosSvcConfig,omitempty"`
+	HTTPFaultConfig                 HTTPFaultConfig          `json:"httpFaultSvcConfig,omitempty"`
+}
+
+// Obzev0ResourceSpec defines the desired state of Obzev0Resource
+type Obzev0ResourceSpec struct {
+	LatencyServiceConfig            TcpConfig                `json:"latencySvcConfig,omitempty"`
+	TcAnalyserServiceConfig         TcAnalyserConfig         `json:"tcAnalyserSvcConfig,omitempty"`
+	PacketManipulationServiceConfig PacketManipulationConfig `json:"packetManipulationSvcConfig,omitempty"`
+	NetworkChaosConfig              NetworkChaosConfig       `json:"networkChaosSvcConfig,omitempty"`
+	HTTPFaultConfig                 HTTPFaultConfig          `json:"httpFaultSvcConfig,omitempty"`
+
+	// BlastRadius limits the scope of this experiment. Empty = target all daemon pods.
+	BlastRadius BlastRadius `json:"blastRadius,omitempty"`
+	// RollbackPolicy defines automatic stop conditions for this experiment.
+	RollbackPolicy RollbackPolicy `json:"rollbackPolicy,omitempty"`
+	// Schedule is a standard cron expression (e.g. "*/5 * * * *"). When set, the experiment
+	// runs on this schedule instead of immediately on CR creation.
+	Schedule string `json:"schedule,omitempty"`
+	// Steps defines a sequential workflow. When set, the top-level service configs are ignored.
+	Steps []ExperimentStep `json:"steps,omitempty"`
 }
 
 // Obzev0ResourceStatus defines the observed state of Obzev0Resource
 type Obzev0ResourceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 	Message string `json:"message,omitempty"`
 }
 

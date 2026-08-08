@@ -1,35 +1,32 @@
 package packetmanipulation
 
 import (
+	"context"
 	"log"
+	"sync/atomic"
 	"time"
 
-	"obzev0/common/proto/packetManipulation"
+	proto "obzev0/common/proto/packetManipulation"
 	"obzev0/daemon/api/grpc/helper"
-
-	"golang.org/x/net/context"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type PacketManipulationService struct {
-	packetManipulation.UnimplementedPacketManipulationServiceServer
-	// metrics     MetricsData
-	// metricsChan chan MetricsData
+	proto.UnimplementedPacketManipulationServiceServer
 }
+
+// activeCancel stores the context.CancelFunc for any running experiment.
+var activeCancel atomic.Value
 
 func (s *PacketManipulationService) StartManipulationProxy(
 	ctx context.Context,
-	requestForManipulationProxy *packetManipulation.RequestForManipulationProxy,
-) (*packetManipulation.ResponseFromManipulationProxy, error) {
+	requestForManipulationProxy *proto.RequestForManipulationProxy,
+) (*proto.ResponseFromManipulationProxy, error) {
 	if err := requestForManipulationProxy.Config.Validate(); err != nil {
 		log.Printf("Invalid request: %v", err)
-		return nil, status.Errorf(
-			codes.InvalidArgument,
-			"Invalid request: %v",
-			err,
-		)
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid request: %v", err)
 	}
 	config := requestForManipulationProxy.GetConfig()
 
@@ -44,12 +41,13 @@ func (s *PacketManipulationService) StartManipulationProxy(
 
 	if config.DurationConfig.DurationSeconds > 0 {
 		proxyConfiguration.DropRate = float64(config.DurationConfig.DropRate)
-		proxyConfiguration.Timeout = time.Duration(
-			config.DurationConfig.DurationSeconds,
-		) * time.Second
+		proxyConfiguration.Timeout = time.Duration(config.DurationConfig.DurationSeconds) * time.Second
+
+		expCtx, cancel := context.WithCancel(context.Background())
+		activeCancel.Store(cancel)
 
 		go func() {
-			if err := Proxy(proxyConfiguration); err != nil {
+			if err := Proxy(proxyConfiguration, expCtx); err != nil {
 				log.Printf("Error in manipulation Proxy: %v", err)
 			}
 		}()
@@ -62,7 +60,18 @@ func (s *PacketManipulationService) StartManipulationProxy(
 		log.Println("No duration set for manipulation. Proxy not started.")
 	}
 
-	return &packetManipulation.ResponseFromManipulationProxy{
+	return &proto.ResponseFromManipulationProxy{
 		Message: "User Space program status: Proxy manipulation started",
 	}, nil
+}
+
+func (s *PacketManipulationService) StopManipulationProxy(
+	ctx context.Context,
+	req *proto.StopRequest,
+) (*proto.StopResponse, error) {
+	log.Printf("StopManipulationProxy called, reason: %s", req.Reason)
+	if cancel, ok := activeCancel.Load().(context.CancelFunc); ok {
+		cancel()
+	}
+	return &proto.StopResponse{Message: "packet manipulation experiment stopped"}, nil
 }

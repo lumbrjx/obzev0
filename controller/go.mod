@@ -5,6 +5,7 @@ go 1.22.5
 require (
 	github.com/onsi/ginkgo/v2 v2.17.2
 	github.com/onsi/gomega v1.33.1
+	github.com/robfig/cron/v3 v3.0.1
 	google.golang.org/grpc v1.65.0
 	k8s.io/api v0.30.2
 	k8s.io/apimachinery v0.30.2

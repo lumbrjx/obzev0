@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package networkChaos;
+option go_package = "/networkChaos";
+
+service NetworkChaosService {
+    rpc StartBandwidthLimit(BandwidthRequest)  returns (BandwidthResponse)  {};
+    rpc StopBandwidthLimit(StopRequest)        returns (StopResponse)       {};
+    rpc StartDNSChaos(DNSChaosRequest)         returns (DNSChaosResponse)   {};
+    rpc StopDNSChaos(StopRequest)              returns (StopResponse)       {};
+    rpc StartTCPReset(TCPResetRequest)         returns (TCPResetResponse)   {};
+    rpc StopTCPReset(StopRequest)              returns (StopResponse)       {};
+}
+
+message BandwidthRequest {
+    string interface  = 1;
+    uint64 rate_kbps  = 2;
+    uint32 burst_kb   = 3;
+}
+
+message BandwidthResponse {
+    string message = 1;
+}
+
+message DNSChaosRequest {
+    string mode        = 1;
+    int32  delay_ms    = 2;
+    string listen_addr = 3;
+    string upstream    = 4;
+}
+
+message DNSChaosResponse {
+    string message = 1;
+}
+
+message TCPResetRequest {
+    string listen_addr = 1;
+    float  reset_rate  = 2;
+}
+
+message TCPResetResponse {
+    string message = 1;
+}
+
+message StopRequest {
+    string reason = 1;
+}
+
+message StopResponse {
+    string message = 1;
+}

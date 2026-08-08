@@ -16,10 +16,6 @@ version: 0.1.0
 # Versioning but should accurately reflect the application's version.
 appVersion: "1.16.0"
 
-# Define the Kubernetes API version of the chart (v2 is recommended for Helm 3+).
-# Ensure compatibility with the Helm version being used.
-apiVersion: v2
-
 # Maintainer information (optional but recommended).
 maintainers:
   - name: Lumberjack 

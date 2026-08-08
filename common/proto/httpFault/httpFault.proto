@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package httpFault;
+option go_package = "/httpFault";
+
+service HTTPFaultService {
+    rpc StartHTTPFault(HTTPFaultRequest)  returns (HTTPFaultResponse)  {};
+    rpc StopHTTPFault(StopRequest)        returns (StopResponse)       {};
+}
+
+message HTTPFaultRequest {
+    string listen_addr = 1;
+    string target_url  = 2;
+    float  error_rate  = 3;
+    int32  error_code  = 4;
+    int32  delay_ms    = 5;
+    float  abort_rate  = 6;
+}
+
+message HTTPFaultResponse {
+    string message = 1;
+}
+
+message StopRequest {
+    string reason = 1;
+}
+
+message StopResponse {
+    string message = 1;
+}

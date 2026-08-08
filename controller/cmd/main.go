@@ -18,8 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	batchv1 "obzev0/controller/api/v1"
-
 	"obzev0/controller/internal/controller"
+	ctrapi "obzev0/controller/internal/api"
 )
 
 var (
@@ -38,6 +38,7 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var uiPort int
 	flag.StringVar(
 		&metricsAddr,
 		"metrics-bind-address",
@@ -62,6 +63,8 @@ func main() {
 	)
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.IntVar(&uiPort, "ui-port", 8090,
+		"Port for the obzev0 web dashboard and REST API")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -102,8 +105,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	recorder := mgr.GetEventRecorderFor("obzev0-controller")
+
 	setupLog.Info("Setting up informers")
-	controller.SetupInformers(mgr)
+	controller.SetupInformers(mgr, recorder, mgr.GetClient())
+
+	setupLog.Info("Starting dashboard API server", "port", uiPort)
+	ctrapi.StartAPIServer(mgr, uiPort)
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

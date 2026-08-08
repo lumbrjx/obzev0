@@ -7,6 +7,7 @@ import "validate/validate.proto";
 service PacketManipulationService {
   rpc StartManipulationProxy(RequestForManipulationProxy)
       returns (ResponseFromManipulationProxy) {};
+  rpc StopManipulationProxy(StopRequest) returns (StopResponse) {};
 }
 
 message pctmConfig {
@@ -27,4 +28,8 @@ message RequestForManipulationProxy {
 }
 
 message ResponseFromManipulationProxy { string message = 1; }
+
+message StopRequest { string reason = 1; }
+
+message StopResponse { string message = 1; }
 

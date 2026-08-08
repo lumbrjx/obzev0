@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	PacketManipulationService_StartManipulationProxy_FullMethodName = "/packetManipulationServ.PacketManipulationService/StartManipulationProxy"
+	PacketManipulationService_StopManipulationProxy_FullMethodName  = "/packetManipulationServ.PacketManipulationService/StopManipulationProxy"
 )
 
 // PacketManipulationServiceClient is the client API for PacketManipulationService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PacketManipulationServiceClient interface {
 	StartManipulationProxy(ctx context.Context, in *RequestForManipulationProxy, opts ...grpc.CallOption) (*ResponseFromManipulationProxy, error)
+	StopManipulationProxy(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error)
 }
 
 type packetManipulationServiceClient struct {
@@ -47,11 +49,22 @@ func (c *packetManipulationServiceClient) StartManipulationProxy(ctx context.Con
 	return out, nil
 }
 
+func (c *packetManipulationServiceClient) StopManipulationProxy(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*StopResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StopResponse)
+	err := c.cc.Invoke(ctx, PacketManipulationService_StopManipulationProxy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PacketManipulationServiceServer is the server API for PacketManipulationService service.
 // All implementations must embed UnimplementedPacketManipulationServiceServer
 // for forward compatibility.
 type PacketManipulationServiceServer interface {
 	StartManipulationProxy(context.Context, *RequestForManipulationProxy) (*ResponseFromManipulationProxy, error)
+	StopManipulationProxy(context.Context, *StopRequest) (*StopResponse, error)
 	mustEmbedUnimplementedPacketManipulationServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedPacketManipulationServiceServer struct{}
 
 func (UnimplementedPacketManipulationServiceServer) StartManipulationProxy(context.Context, *RequestForManipulationProxy) (*ResponseFromManipulationProxy, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartManipulationProxy not implemented")
+}
+func (UnimplementedPacketManipulationServiceServer) StopManipulationProxy(context.Context, *StopRequest) (*StopResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopManipulationProxy not implemented")
 }
 func (UnimplementedPacketManipulationServiceServer) mustEmbedUnimplementedPacketManipulationServiceServer() {
 }
@@ -105,6 +121,24 @@ func _PacketManipulationService_StartManipulationProxy_Handler(srv interface{}, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PacketManipulationService_StopManipulationProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PacketManipulationServiceServer).StopManipulationProxy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PacketManipulationService_StopManipulationProxy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PacketManipulationServiceServer).StopManipulationProxy(ctx, req.(*StopRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PacketManipulationService_ServiceDesc is the grpc.ServiceDesc for PacketManipulationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +149,10 @@ var PacketManipulationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartManipulationProxy",
 			Handler:    _PacketManipulationService_StartManipulationProxy_Handler,
+		},
+		{
+			MethodName: "StopManipulationProxy",
+			Handler:    _PacketManipulationService_StopManipulationProxy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

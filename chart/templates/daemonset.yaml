@@ -13,7 +13,8 @@ spec:
     spec:
       containers:
       - name: grpc-server
-        image: lumbrjx/obzev0-grpc-daemon:latest
+        image: "{{ .Values.daemon.image.repository }}:{{ .Values.daemon.image.tag }}"
+        imagePullPolicy: {{ .Values.daemon.image.pullPolicy }}
         ports:
         - containerPort: 50051
         livenessProbe:

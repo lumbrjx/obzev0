@@ -26,7 +26,7 @@ var (
 func handleConnection(
 	conn net.Conn,
 	clientConn net.Conn,
-	cnf definitions.Config,
+	cnf definitions.LatencyInternalConfig,
 	wg *sync.WaitGroup,
 ) {
 	defer conn.Close()
@@ -107,7 +107,9 @@ func Pipe(dst io.Writer, src io.Reader, r, s string, mtr *MetricsData) {
 	mtr.BytesNumber = append(mtr.BytesNumber, n)
 }
 
-func LaunchTcp(conf definitions.Config) error {
+// LaunchTcp runs until ctx is cancelled (externally via StopTcpServer) or the
+// built-in 10-second timeout fires, whichever comes first.
+func LaunchTcp(conf definitions.LatencyInternalConfig, ctx context.Context) error {
 	listener, err := net.Listen("tcp", ":"+conf.Server.Port)
 	if err != nil {
 		fmt.Println("Error starting TCP server:", err)
@@ -119,7 +121,8 @@ func LaunchTcp(conf definitions.Config) error {
 
 	var wg sync.WaitGroup
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Combine the caller's context with a 10-second timeout.
+	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	go func() {
@@ -127,7 +130,7 @@ func LaunchTcp(conf definitions.Config) error {
 			conn, err := listener.Accept()
 			if err != nil {
 				select {
-				case <-ctx.Done():
+				case <-timeoutCtx.Done():
 					return
 				default:
 					fmt.Println("Error accepting connection:", err)
@@ -147,7 +150,7 @@ func LaunchTcp(conf definitions.Config) error {
 		}
 	}()
 
-	<-ctx.Done()
+	<-timeoutCtx.Done()
 
 	listener.Close()
 	wg.Wait()
